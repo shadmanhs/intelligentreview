@@ -1,4 +1,4 @@
-import { GitPullRequest, ArrowRight, Zap, Shield, Brain, Clock, CheckCircle } from "lucide-react";
+import { GitPullRequest, ArrowRight, Zap, Shield, Brain, Clock, CheckCircle, Check, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Landing() {
@@ -16,6 +16,15 @@ export default function Landing() {
           <div className="flex items-center gap-4">
             <button onClick={() => navigate("/login")} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
               Sign in
+            </button>
+            <button
+              onClick={() => {
+                const el = document.getElementById("pricing");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Pricing
             </button>
             <button
               onClick={() => navigate("/login")}
@@ -46,7 +55,7 @@ export default function Landing() {
             >
               Start reviewing <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
             </button>
-            <span className="text-xs text-muted-foreground">Free · No credit card</span>
+            <span className="text-xs text-muted-foreground">1 free review/week · No credit card</span>
           </div>
         </div>
       </section>
@@ -143,6 +152,65 @@ export default function Landing() {
                 <span className="text-sm text-foreground">{feature}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="border-t" id="pricing">
+        <div className="max-w-4xl mx-auto px-6 py-20">
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">Pricing</p>
+          <h2 className="text-xl font-medium text-foreground mb-8">Simple, transparent pricing</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl">
+            {/* Free */}
+            <div className="border rounded-lg p-6">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Free</p>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-2xl font-medium text-foreground">$0</span>
+                <span className="text-xs text-muted-foreground">/month</span>
+              </div>
+              <div className="space-y-2.5 mb-6">
+                {["1 AI review per week", "Concern detection", "Full diff viewer", "Post to GitHub"].map((f) => (
+                  <div key={f} className="flex items-start gap-2">
+                    <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
+                    <span className="text-sm text-foreground">{f}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => navigate("/login")}
+                className="w-full py-2.5 rounded-md border text-sm text-foreground hover:bg-secondary transition-colors"
+              >
+                Get started
+              </button>
+            </div>
+            {/* Pro */}
+            <div className="border-2 border-foreground rounded-lg p-6 relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="text-[10px] uppercase tracking-wider bg-foreground text-background px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                  <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> Recommended
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Pro</p>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-2xl font-medium text-foreground">$10</span>
+                <span className="text-xs text-muted-foreground">/month</span>
+              </div>
+              <div className="space-y-2.5 mb-6">
+                {["Unlimited AI reviews", "Priority analysis speed", "Repo-aware coding standards", "AI diff explanations", "Everything in Free"].map((f) => (
+                  <div key={f} className="flex items-start gap-2">
+                    <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
+                    <span className="text-sm text-foreground">{f}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => navigate("/login")}
+                className="w-full py-2.5 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
+              >
+                Start free, upgrade anytime
+              </button>
+            </div>
           </div>
         </div>
       </section>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { toast } from "sonner";
@@ -15,6 +16,8 @@ import {
   Loader2,
   KeyRound,
   Shield,
+  CreditCard,
+  Sparkles,
 } from "lucide-react";
 
 interface Profile {
@@ -32,6 +35,7 @@ interface GitHubConnection {
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { subscribed, subscriptionEnd, checkSubscription } = useSubscription();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [ghConnection, setGhConnection] = useState<GitHubConnection | null>(null);
   const [loading, setLoading] = useState(true);
@@ -269,6 +273,56 @@ export default function SettingsPage() {
           >
             <ExternalLink className="h-2.5 w-2.5" strokeWidth={1.5} /> Manage tokens on GitHub
           </a>
+        </section>
+
+        {/* ── Subscription ── */}
+        <section className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <CreditCard className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+            <h2 className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Subscription</h2>
+          </div>
+
+          <div className="border rounded-lg divide-y">
+            <div className="px-4 py-3 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">{subscribed ? "Pro" : "Free"}</p>
+                  {subscribed && <Sparkles className="h-3 w-3 text-foreground" strokeWidth={1.5} />}
+                </div>
+                {subscribed && subscriptionEnd && (
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    Renews {new Date(subscriptionEnd).toLocaleDateString()}
+                  </p>
+                )}
+                {!subscribed && (
+                  <p className="text-[10px] text-muted-foreground mt-0.5">1 AI review per week</p>
+                )}
+              </div>
+              {subscribed ? (
+                <button
+                  onClick={async () => {
+                    try {
+                      const { data, error } = await supabase.functions.invoke("customer-portal");
+                      if (error) throw error;
+                      if (data?.url) window.open(data.url, "_blank");
+                    } catch (err: any) {
+                      toast.error(err.message || "Failed to open portal");
+                    }
+                  }}
+                  className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Manage subscription
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate("/pricing")}
+                  className="text-[11px] px-3 py-1.5 rounded bg-foreground text-background hover:bg-foreground/90 transition-colors"
+                >
+                  Upgrade to Pro
+                </button>
+              )}
+            </div>
+          </div>
         </section>
 
         {/* ── Danger zone ── */}
