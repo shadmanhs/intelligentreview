@@ -26,8 +26,6 @@ export default function Landing() {
             >
               Pricing
             </button>
-              Sign in
-            </button>
             <button
               onClick={() => navigate("/login")}
               className="text-xs px-3 py-1.5 rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors"
