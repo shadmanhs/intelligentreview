@@ -163,7 +163,7 @@ export default function ReviewPage() {
       </div>
 
       {/* Content */}
-      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-6">
+      <main className={`flex-1 w-full ${tab === "diff" ? "px-4 py-4" : "max-w-3xl mx-auto px-6 py-6"}`}>
         {tab === "concerns" && (
           <div className="space-y-3">
             {concerns.length === 0 ? (
@@ -207,26 +207,12 @@ export default function ReviewPage() {
         )}
 
         {tab === "diff" && (
-          <div className="space-y-4">
-            {files.map((file: any) => (
-              <div key={file.path} className="border rounded-lg overflow-hidden">
-                <div className="px-4 py-2 border-b bg-secondary/30 flex items-center justify-between">
-                  <span className="text-xs font-mono text-foreground">{file.path}</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">
-                    <span className="text-success">+{file.additions}</span>
-                    {file.deletions > 0 && <span className="text-destructive ml-2">−{file.deletions}</span>}
-                  </span>
-                </div>
-                {file.patch ? (
-                  <pre className="p-3 text-[11px] font-mono leading-5 overflow-x-auto text-foreground/70 whitespace-pre-wrap">
-                    {file.patch}
-                  </pre>
-                ) : (
-                  <p className="p-3 text-xs text-muted-foreground">Binary or too large to display</p>
-                )}
-              </div>
-            ))}
-          </div>
+          <FilesChangedView
+            files={files}
+            owner={owner!}
+            repo={repo!}
+            prNumber={Number(number)}
+          />
         )}
 
         {tab === "post" && <ReviewSummary concerns={concerns} onPost={handlePost} />}
