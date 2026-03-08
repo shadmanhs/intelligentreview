@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
-import { GitPullRequest, Check, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { GitPullRequest, Check, ArrowRight, Loader2, Sparkles, Users } from "lucide-react";
 import { toast } from "sonner";
 
 export default function PricingPage() {
@@ -49,18 +49,18 @@ export default function PricingPage() {
         </nav>
       )}
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-16">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-16">
         <div className="text-center mb-12">
           <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">Pricing</p>
           <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-foreground mb-3">
-            Review more PRs, ship faster
+            Built for individuals. Priced for teams.
           </h1>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Start free with 1 AI-powered review per week. Upgrade for unlimited reviews.
+            Start free. Upgrade to Pro for unlimited reviews. Scale with your team.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
           {/* Free tier */}
           <div className="border rounded-lg p-6">
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Free</p>
@@ -71,7 +71,7 @@ export default function PricingPage() {
             <div className="space-y-3 mb-6">
               {[
                 "1 AI review per week",
-                "Concern detection & draft comments",
+                "Concern detection",
                 "Full diff viewer",
                 "Post to GitHub",
               ].map((f) => (
@@ -81,9 +81,7 @@ export default function PricingPage() {
                 </div>
               ))}
             </div>
-            {subscribed ? (
-              <p className="text-xs text-muted-foreground text-center">Your current plan</p>
-            ) : !user ? (
+            {!user ? (
               <button
                 onClick={() => navigate("/login")}
                 className="w-full py-2.5 rounded-md border text-sm text-foreground hover:bg-secondary transition-colors"
@@ -91,7 +89,9 @@ export default function PricingPage() {
                 Get started
               </button>
             ) : (
-              <p className="text-xs text-muted-foreground text-center">Your current plan</p>
+              <p className="text-xs text-muted-foreground text-center">
+                {subscribed ? "—" : "Your current plan"}
+              </p>
             )}
           </div>
 
@@ -99,7 +99,7 @@ export default function PricingPage() {
           <div className="border-2 border-foreground rounded-lg p-6 relative">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="text-[10px] uppercase tracking-wider bg-foreground text-background px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> Recommended
+                <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> Popular
               </span>
             </div>
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Pro</p>
@@ -110,10 +110,10 @@ export default function PricingPage() {
             <div className="space-y-3 mb-6">
               {[
                 "Unlimited AI reviews",
-                "Custom review rules per repo",
-                "Review intelligence dashboard",
+                "Custom review rules",
+                "Review intelligence",
                 "AI diff explanations",
-                "Priority analysis speed",
+                "Priority speed",
                 "Everything in Free",
               ].map((f) => (
                 <div key={f} className="flex items-start gap-2">
@@ -133,13 +133,59 @@ export default function PricingPage() {
                 {checkoutLoading ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={1.5} />
                 ) : (
-                  <>
-                    Upgrade to Pro <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
-                  </>
+                  <>Upgrade <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} /></>
                 )}
               </button>
             )}
           </div>
+
+          {/* Team tier */}
+          <div className="border-2 border-foreground/20 rounded-lg p-6 relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="text-[10px] uppercase tracking-wider bg-secondary text-foreground px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                <Users className="h-2.5 w-2.5" strokeWidth={2} /> Teams
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Team</p>
+            <div className="flex items-baseline gap-1 mb-4">
+              <span className="text-2xl font-medium text-foreground">$25</span>
+              <span className="text-xs text-muted-foreground">/seat/month</span>
+            </div>
+            <div className="space-y-3 mb-6">
+              {[
+                "Team workspace",
+                "Shared review rules",
+                "Team analytics & ROI",
+                "Member management",
+                "Admin controls",
+                "Everything in Pro",
+              ].map((f) => (
+                <div key={f} className="flex items-start gap-2">
+                  <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
+                  <span className="text-sm text-foreground">{f}</span>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => user ? navigate("/app/team") : navigate("/login")}
+              className="w-full py-2.5 rounded-md border-2 border-foreground text-sm font-medium text-foreground hover:bg-foreground hover:text-background transition-colors flex items-center justify-center gap-2"
+            >
+              Start with your team <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
+            </button>
+          </div>
+        </div>
+
+        {/* Enterprise CTA */}
+        <div className="mt-12 text-center border rounded-lg p-8 max-w-xl mx-auto">
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Enterprise</p>
+          <h3 className="text-sm font-medium text-foreground mb-2">Need SSO, audit logs, or custom deployment?</h3>
+          <p className="text-xs text-muted-foreground mb-4">We work with engineering teams at scale. Let's talk.</p>
+          <a
+            href="mailto:team@reviewlens.dev"
+            className="text-xs px-4 py-2 rounded-md border text-foreground hover:bg-secondary transition-colors inline-block"
+          >
+            Contact sales
+          </a>
         </div>
       </main>
     </div>

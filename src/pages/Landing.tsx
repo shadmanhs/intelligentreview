@@ -44,21 +44,27 @@ export default function Landing() {
         <div className="max-w-2xl">
           <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">For engineering teams that ship fast</p>
           <h1 className="text-3xl sm:text-4xl font-medium tracking-tight text-foreground leading-tight mb-4">
-            Review PRs in 5 minutes,<br />not 30.
+            Your team reviews PRs<br />in 5 minutes, not 30.
           </h1>
           <p className="text-base text-muted-foreground leading-relaxed mb-8 max-w-lg">
             AI reads the diff, learns your team's patterns, and surfaces what matters — with draft comments
-            you approve, edit, or dismiss. Gets smarter with every review.
+            engineers approve, edit, or dismiss. Team-wide analytics show ROI from day one.
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={() => navigate("/login")}
               className="text-sm px-5 py-2.5 rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors flex items-center gap-2"
             >
               Start reviewing <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
             </button>
-            <span className="text-xs text-muted-foreground">1 free review/week · No credit card</span>
+            <button
+              onClick={() => navigate("/pricing")}
+              className="text-sm px-5 py-2.5 rounded-md border text-foreground hover:bg-secondary transition-colors"
+            >
+              See team pricing
+            </button>
           </div>
+          <p className="text-xs text-muted-foreground mt-3">Free for individuals · $25/seat for teams</p>
         </div>
       </section>
 
@@ -139,26 +145,31 @@ export default function Landing() {
       {/* What makes us different */}
       <section className="border-t">
         <div className="max-w-4xl mx-auto px-6 py-20">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">What GitHub doesn't do</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">Built for teams</p>
           <h2 className="text-xl font-medium text-foreground mb-8 max-w-md">
-            ReviewLens learns your standards and gets smarter over time.
+            What GitHub Copilot doesn't do.
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               {
                 icon: BookOpen,
-                title: "Custom review rules",
-                desc: "Define per-repo rules like 'always check for SQL injection in API routes.' The AI enforces them every time.",
+                title: "Shared review rules",
+                desc: "Define team-wide rules like 'always check for SQL injection.' Everyone gets the same standards enforced.",
               },
               {
                 icon: BarChart3,
-                title: "Review intelligence",
-                desc: "Track patterns across repos: which modules have the most issues, what concerns you dismiss most, and estimated time saved.",
+                title: "Team analytics & ROI",
+                desc: "See who reviews most, approval rates per engineer, time saved per sprint, and ROI to justify the spend.",
               },
               {
                 icon: Brain,
-                title: "Learns from your decisions",
-                desc: "Every approve and dismiss teaches ReviewLens what matters to you. Over time, less noise, more signal.",
+                title: "Learns from your team",
+                desc: "Every approve and dismiss across all members teaches ReviewLens your team's standards. Less noise over time.",
+              },
+              {
+                icon: Shield,
+                title: "Enterprise-ready security",
+                desc: "Zero code retention. Your diffs never touch our servers. SOC 2 roadmap. Built for CTOs who care about data.",
               },
             ].map((item) => (
               <div key={item.title}>
@@ -199,8 +210,8 @@ export default function Landing() {
       <section className="border-t" id="pricing">
         <div className="max-w-4xl mx-auto px-6 py-20">
           <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">Pricing</p>
-          <h2 className="text-xl font-medium text-foreground mb-8">Simple, transparent pricing</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl">
+          <h2 className="text-xl font-medium text-foreground mb-8">Individual to team, one platform</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl">
             {/* Free */}
             <div className="border rounded-lg p-6">
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Free</p>
@@ -209,7 +220,7 @@ export default function Landing() {
                 <span className="text-xs text-muted-foreground">/month</span>
               </div>
               <div className="space-y-2.5 mb-6">
-                {["1 AI review per week", "Concern detection", "Full diff viewer", "Post to GitHub"].map((f) => (
+                {["1 review/week", "Concern detection", "Diff viewer", "Post to GitHub"].map((f) => (
                   <div key={f} className="flex items-start gap-2">
                     <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
                     <span className="text-sm text-foreground">{f}</span>
@@ -227,7 +238,7 @@ export default function Landing() {
             <div className="border-2 border-foreground rounded-lg p-6 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <span className="text-[10px] uppercase tracking-wider bg-foreground text-background px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                  <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> Recommended
+                  <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> Popular
                 </span>
               </div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Pro</p>
@@ -236,14 +247,7 @@ export default function Landing() {
                 <span className="text-xs text-muted-foreground">/month</span>
               </div>
               <div className="space-y-2.5 mb-6">
-                {[
-                  "Unlimited AI reviews",
-                  "Custom review rules per repo",
-                  "Review intelligence dashboard",
-                  "AI diff explanations",
-                  "Priority analysis speed",
-                  "Everything in Free",
-                ].map((f) => (
+                {["Unlimited reviews", "Custom rules", "Intelligence dashboard", "AI explanations", "Priority speed"].map((f) => (
                   <div key={f} className="flex items-start gap-2">
                     <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
                     <span className="text-sm text-foreground">{f}</span>
@@ -255,6 +259,33 @@ export default function Landing() {
                 className="w-full py-2.5 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
               >
                 Start free, upgrade anytime
+              </button>
+            </div>
+            {/* Team */}
+            <div className="border-2 border-foreground/20 rounded-lg p-6 relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="text-[10px] uppercase tracking-wider bg-secondary text-foreground px-3 py-1 rounded-full font-medium">
+                  For CTOs
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Team</p>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-2xl font-medium text-foreground">$25</span>
+                <span className="text-xs text-muted-foreground">/seat/mo</span>
+              </div>
+              <div className="space-y-2.5 mb-6">
+                {["Team workspace", "Shared rules", "Team analytics & ROI", "Member management", "Admin controls"].map((f) => (
+                  <div key={f} className="flex items-start gap-2">
+                    <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
+                    <span className="text-sm text-foreground">{f}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => navigate("/login")}
+                className="w-full py-2.5 rounded-md border-2 border-foreground text-sm font-medium text-foreground hover:bg-foreground hover:text-background transition-colors"
+              >
+                Start with your team
               </button>
             </div>
           </div>
