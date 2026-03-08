@@ -35,6 +35,7 @@ interface GitHubConnection {
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { subscribed, subscriptionEnd, checkSubscription } = useSubscription();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [ghConnection, setGhConnection] = useState<GitHubConnection | null>(null);
   const [loading, setLoading] = useState(true);
