@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, FileCode, Sparkles, Loader2, Plus, Minus } from "lucide-react";
+import { InlineCommentForm } from "@/components/review/InlineCommentForm";
+import { FileCode, Sparkles, Loader2, MessageSquare, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 interface DiffFile {
   path: string;
@@ -11,11 +13,21 @@ interface DiffFile {
   patch: string;
 }
 
+interface InlineComment {
+  id: string;
+  filePath: string;
+  lineNumber: number;
+  body: string;
+  side: "RIGHT" | "LEFT";
+}
+
 interface FilesChangedViewProps {
   files: DiffFile[];
   owner: string;
   repo: string;
   prNumber: number;
+  onInlineComment?: (comment: InlineComment) => void;
+  inlineComments?: InlineComment[];
 }
 
 type LineType = "added" | "removed" | "context" | "hunk";
@@ -58,27 +70,30 @@ function parsePatch(patch: string): DiffLine[] {
 }
 
 const statusLabel: Record<string, string> = {
-  added: "A",
-  removed: "D",
-  modified: "M",
-  renamed: "R",
+  added: "A", removed: "D", modified: "M", renamed: "R",
 };
 
 const statusColor: Record<string, string> = {
-  added: "text-success",
-  removed: "text-destructive",
-  modified: "text-warning",
-  renamed: "text-muted-foreground",
+  added: "text-success", removed: "text-destructive", modified: "text-warning", renamed: "text-muted-foreground",
 };
 
-export function FilesChangedView({ files, owner, repo, prNumber }: FilesChangedViewProps) {
+export function FilesChangedView({
+  files,
+  owner,
+  repo,
+  prNumber,
+  onInlineComment,
+  inlineComments = [],
+}: FilesChangedViewProps) {
   const [selectedFile, setSelectedFile] = useState<string>(files[0]?.path || "");
   const [aiExplaining, setAiExplaining] = useState(false);
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [showAiView, setShowAiView] = useState(false);
+  const [commentingLine, setCommentingLine] = useState<{ lineNum: number; content: string; side: "RIGHT" | "LEFT" } | null>(null);
 
   const currentFile = files.find((f) => f.path === selectedFile);
   const diffLines = currentFile ? parsePatch(currentFile.patch) : [];
+  const fileComments = inlineComments.filter((c) => c.filePath === selectedFile);
 
   const handleExplain = async () => {
     if (!currentFile?.patch) return;
@@ -92,15 +107,36 @@ export function FilesChangedView({ files, owner, repo, prNumber }: FilesChangedV
       });
       if (error) throw error;
       setAiExplanation(data?.explanation || "Could not generate explanation.");
-    } catch (err: any) {
+    } catch {
       setAiExplanation("Failed to generate explanation. Please try again.");
     } finally {
       setAiExplaining(false);
     }
   };
 
+  const handleLineClick = useCallback((line: DiffLine) => {
+    if (line.type === "hunk") return;
+    const lineNum = line.type === "removed" ? line.oldNum! : line.newNum!;
+    const side = line.type === "removed" ? "LEFT" as const : "RIGHT" as const;
+    setCommentingLine({ lineNum, content: line.content, side });
+  }, []);
+
+  const handleCommentSubmit = useCallback((body: string) => {
+    if (!commentingLine || !onInlineComment) return;
+    const comment: InlineComment = {
+      id: `inline-${Date.now()}`,
+      filePath: selectedFile,
+      lineNumber: commentingLine.lineNum,
+      body,
+      side: commentingLine.side,
+    };
+    onInlineComment(comment);
+    setCommentingLine(null);
+    toast.success("Comment added");
+  }, [commentingLine, selectedFile, onInlineComment]);
+
   return (
-    <div className="flex h-[calc(100vh-220px)] border rounded-lg overflow-hidden">
+    <div className="flex h-[calc(100vh-260px)] border rounded-lg overflow-hidden">
       {/* File tree sidebar */}
       <div className="w-64 border-r bg-card/50 shrink-0 overflow-y-auto">
         <div className="px-3 py-2 border-b">
@@ -113,11 +149,12 @@ export function FilesChangedView({ files, owner, repo, prNumber }: FilesChangedV
             const filename = file.path.split("/").pop() || file.path;
             const dir = file.path.includes("/") ? file.path.slice(0, file.path.lastIndexOf("/")) : "";
             const isActive = selectedFile === file.path;
+            const commentCount = inlineComments.filter((c) => c.filePath === file.path).length;
 
             return (
               <button
                 key={file.path}
-                onClick={() => { setSelectedFile(file.path); setShowAiView(false); setAiExplanation(null); }}
+                onClick={() => { setSelectedFile(file.path); setShowAiView(false); setAiExplanation(null); setCommentingLine(null); }}
                 className={`w-full text-left px-3 py-1.5 text-[11px] flex items-center gap-2 transition-colors ${
                   isActive ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                 }`}
@@ -129,10 +166,18 @@ export function FilesChangedView({ files, owner, repo, prNumber }: FilesChangedV
                   {dir && <span className="text-muted-foreground/60">{dir}/</span>}
                   <span className="font-medium">{filename}</span>
                 </div>
-                <span className="text-[9px] font-mono shrink-0 text-muted-foreground/60">
-                  <span className="text-success">+{file.additions}</span>
-                  {file.deletions > 0 && <span className="text-destructive ml-1">−{file.deletions}</span>}
-                </span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {commentCount > 0 && (
+                    <span className="flex items-center gap-0.5 text-[9px] text-foreground">
+                      <MessageSquare className="h-2.5 w-2.5" strokeWidth={1.5} />
+                      {commentCount}
+                    </span>
+                  )}
+                  <span className="text-[9px] font-mono text-muted-foreground/60">
+                    <span className="text-success">+{file.additions}</span>
+                    {file.deletions > 0 && <span className="text-destructive ml-1">−{file.deletions}</span>}
+                  </span>
+                </div>
               </button>
             );
           })}
@@ -152,22 +197,29 @@ export function FilesChangedView({ files, owner, repo, prNumber }: FilesChangedV
                 {currentFile.deletions > 0 && <span className="text-destructive ml-1">−{currentFile.deletions}</span>}
               </span>
             </div>
-            <button
-              onClick={showAiView ? () => setShowAiView(false) : handleExplain}
-              disabled={aiExplaining}
-              className={`text-[11px] px-2.5 py-1 rounded flex items-center gap-1.5 transition-colors shrink-0 ${
-                showAiView
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-              }`}
-            >
-              {aiExplaining ? (
-                <Loader2 className="h-3 w-3 animate-spin" strokeWidth={1.5} />
-              ) : (
-                <Sparkles className="h-3 w-3" strokeWidth={1.5} />
+            <div className="flex items-center gap-2 shrink-0">
+              {onInlineComment && !showAiView && (
+                <span className="text-[10px] text-muted-foreground/50 hidden sm:inline">
+                  Click a line to comment
+                </span>
               )}
-              {showAiView ? "Show diff" : "Explain changes"}
-            </button>
+              <button
+                onClick={showAiView ? () => setShowAiView(false) : handleExplain}
+                disabled={aiExplaining}
+                className={`text-[11px] px-2.5 py-1 rounded flex items-center gap-1.5 transition-colors ${
+                  showAiView
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                }`}
+              >
+                {aiExplaining ? (
+                  <Loader2 className="h-3 w-3 animate-spin" strokeWidth={1.5} />
+                ) : (
+                  <Sparkles className="h-3 w-3" strokeWidth={1.5} />
+                )}
+                {showAiView ? "Show diff" : "Explain changes"}
+              </button>
+            </div>
           </div>
         )}
 
@@ -196,11 +248,14 @@ export function FilesChangedView({ files, owner, repo, prNumber }: FilesChangedV
             <table className="w-full border-collapse font-mono text-[11px] leading-5">
               <tbody>
                 {diffLines.map((line, i) => {
+                  const lineNum = line.type === "removed" ? line.oldNum : line.newNum;
+
                   if (line.type === "hunk") {
                     return (
                       <tr key={i} className="bg-primary/5">
                         <td className="w-10 px-2 text-right text-muted-foreground/40 select-none border-r border-border/50">⋯</td>
                         <td className="w-10 px-2 text-right text-muted-foreground/40 select-none border-r border-border/50">⋯</td>
+                        <td className="w-8"></td>
                         <td className="px-4 py-1 text-primary/70">{line.content}</td>
                       </tr>
                     );
@@ -215,21 +270,61 @@ export function FilesChangedView({ files, owner, repo, prNumber }: FilesChangedV
                     line.type === "removed" ? "text-destructive" :
                     "text-foreground/70";
 
+                  const lineComments = fileComments.filter((c) => c.lineNumber === lineNum);
+                  const isCommenting = commentingLine?.lineNum === lineNum;
+
                   return (
-                    <tr key={i} className={`${bgClass} hover:brightness-95 transition-colors`}>
-                      <td className="w-10 px-2 text-right text-muted-foreground/30 select-none border-r border-border/30 tabular-nums">
-                        {line.type !== "added" ? line.oldNum : ""}
-                      </td>
-                      <td className="w-10 px-2 text-right text-muted-foreground/30 select-none border-r border-border/30 tabular-nums">
-                        {line.type !== "removed" ? line.newNum : ""}
-                      </td>
-                      <td className={`px-4 whitespace-pre-wrap ${textClass}`}>
-                        <span className="select-none mr-2 text-muted-foreground/30">
-                          {line.type === "added" ? "+" : line.type === "removed" ? "−" : " "}
-                        </span>
-                        {line.content}
-                      </td>
-                    </tr>
+                    <>
+                      <tr
+                        key={i}
+                        className={`${bgClass} hover:brightness-95 transition-colors group/line cursor-pointer`}
+                        onClick={() => onInlineComment && handleLineClick(line)}
+                      >
+                        <td className="w-10 px-2 text-right text-muted-foreground/30 select-none border-r border-border/30 tabular-nums">
+                          {line.type !== "added" ? line.oldNum : ""}
+                        </td>
+                        <td className="w-10 px-2 text-right text-muted-foreground/30 select-none border-r border-border/30 tabular-nums">
+                          {line.type !== "removed" ? line.newNum : ""}
+                        </td>
+                        <td className="w-8 text-center">
+                          {onInlineComment && (
+                            <Plus
+                              className="h-3 w-3 text-muted-foreground/0 group-hover/line:text-primary transition-colors inline-block"
+                              strokeWidth={2}
+                            />
+                          )}
+                        </td>
+                        <td className={`px-4 whitespace-pre-wrap ${textClass}`}>
+                          <span className="select-none mr-2 text-muted-foreground/30">
+                            {line.type === "added" ? "+" : line.type === "removed" ? "−" : " "}
+                          </span>
+                          {line.content}
+                        </td>
+                      </tr>
+
+                      {/* Existing inline comments */}
+                      {lineComments.map((c) => (
+                        <tr key={c.id} className="bg-card">
+                          <td colSpan={4} className="px-4 py-2">
+                            <div className="border-l-2 border-primary/30 pl-3 ml-16">
+                              <p className="text-xs text-foreground leading-relaxed">{c.body}</p>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+
+                      {/* Inline comment form */}
+                      {isCommenting && (
+                        <InlineCommentForm
+                          key={`form-${lineNum}`}
+                          filePath={selectedFile}
+                          lineNumber={commentingLine.lineNum}
+                          lineContent={commentingLine.content}
+                          onSubmit={handleCommentSubmit}
+                          onCancel={() => setCommentingLine(null)}
+                        />
+                      )}
+                    </>
                   );
                 })}
               </tbody>
