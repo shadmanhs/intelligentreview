@@ -45,7 +45,7 @@ export async function saveReviewSession(params: {
       concerns_dismissed: dismissed,
       concerns_edited: edited,
       comments_posted: params.commentsPosted,
-    })
+    } as any)
     .select("id")
     .single();
 
