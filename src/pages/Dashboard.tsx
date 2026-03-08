@@ -36,7 +36,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AppHeader showUser username={username} />
+      <AppHeader showUser />
       <main className="flex-1 max-w-2xl mx-auto w-full px-6 py-10">
         <div className="mb-8">
           <h1 className="text-lg font-medium tracking-tight text-foreground mb-1">Your review queue</h1>
