@@ -5,6 +5,7 @@ import { ConcernCard } from "@/components/review/ConcernCard";
 import { ReviewSummary } from "@/components/review/ReviewSummary";
 import { FilesChangedView } from "@/components/review/FilesChangedView";
 import { getGitHubToken, analyzePR, postReview } from "@/lib/github";
+import { useSubscription } from "@/hooks/useSubscription";
 import { AIConcern } from "@/types/review";
 import { ArrowLeft, ExternalLink, AlertTriangle, Code, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ type Tab = "concerns" | "diff" | "post";
 export default function ReviewPage() {
   const { owner, repo, number } = useParams();
   const navigate = useNavigate();
+  const { recordUsage } = useSubscription();
   const [tab, setTab] = useState<Tab>("concerns");
   const [concerns, setConcerns] = useState<AIConcern[]>([]);
   const [summary, setSummary] = useState("");
@@ -39,6 +41,9 @@ export default function ReviewPage() {
       setSummary(data.summary || "");
       setRiskLevel(data.riskLevel || "medium");
       setFiles(data.files || []);
+
+      // Record usage for free-tier tracking
+      await recordUsage(`${owner}/${repo}`, Number(number));
     } catch (err: any) {
       setError(err.message || "Failed to analyze PR");
       toast.error(err.message);
