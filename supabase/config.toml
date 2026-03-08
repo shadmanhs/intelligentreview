@@ -1,1 +1,10 @@
 project_id = "vqecwavpzebwhhahprgi"
+
+[functions.fetch-prs]
+verify_jwt = false
+
+[functions.analyze-pr]
+verify_jwt = false
+
+[functions.post-review]
+verify_jwt = false
