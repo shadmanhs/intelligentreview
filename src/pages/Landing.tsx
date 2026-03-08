@@ -145,26 +145,31 @@ export default function Landing() {
       {/* What makes us different */}
       <section className="border-t">
         <div className="max-w-4xl mx-auto px-6 py-20">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">What GitHub doesn't do</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">Built for teams</p>
           <h2 className="text-xl font-medium text-foreground mb-8 max-w-md">
-            ReviewLens learns your standards and gets smarter over time.
+            What GitHub Copilot doesn't do.
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               {
                 icon: BookOpen,
-                title: "Custom review rules",
-                desc: "Define per-repo rules like 'always check for SQL injection in API routes.' The AI enforces them every time.",
+                title: "Shared review rules",
+                desc: "Define team-wide rules like 'always check for SQL injection.' Everyone gets the same standards enforced.",
               },
               {
                 icon: BarChart3,
-                title: "Review intelligence",
-                desc: "Track patterns across repos: which modules have the most issues, what concerns you dismiss most, and estimated time saved.",
+                title: "Team analytics & ROI",
+                desc: "See who reviews most, approval rates per engineer, time saved per sprint, and ROI to justify the spend.",
               },
               {
                 icon: Brain,
-                title: "Learns from your decisions",
-                desc: "Every approve and dismiss teaches ReviewLens what matters to you. Over time, less noise, more signal.",
+                title: "Learns from your team",
+                desc: "Every approve and dismiss across all members teaches ReviewLens your team's standards. Less noise over time.",
+              },
+              {
+                icon: Shield,
+                title: "Enterprise-ready security",
+                desc: "Zero code retention. Your diffs never touch our servers. SOC 2 roadmap. Built for CTOs who care about data.",
               },
             ].map((item) => (
               <div key={item.title}>
