@@ -65,10 +65,7 @@ export default function ConnectGitHub() {
     }
   };
 
-  if (hasConnection) {
-    navigate("/app");
-    return null;
-  }
+  // If already connected, show option to update or go to app
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6">
