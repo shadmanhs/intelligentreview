@@ -5,6 +5,7 @@ import { ConcernCard } from "@/components/review/ConcernCard";
 import { ReviewSummary } from "@/components/review/ReviewSummary";
 import { FilesChangedView } from "@/components/review/FilesChangedView";
 import { getGitHubToken, analyzePR, postReview } from "@/lib/github";
+import { useSubscription } from "@/hooks/useSubscription";
 import { AIConcern } from "@/types/review";
 import { ArrowLeft, ExternalLink, AlertTriangle, Code, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
