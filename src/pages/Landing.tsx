@@ -18,6 +18,17 @@ export default function Landing() {
               Sign in
             </button>
             <button
+              onClick={() => {
+                const el = document.getElementById("pricing");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Pricing
+            </button>
+              Sign in
+            </button>
+            <button
               onClick={() => navigate("/login")}
               className="text-xs px-3 py-1.5 rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors"
             >
