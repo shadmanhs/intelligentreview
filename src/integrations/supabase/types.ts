@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      custom_rules: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          repo: string
+          rule_text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          repo: string
+          rule_text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          repo?: string
+          rule_text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       github_connections: {
         Row: {
           access_token: string
@@ -67,6 +97,98 @@ export type Database = {
           email?: string | null
           id?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      review_outcomes: {
+        Row: {
+          action: string
+          concern_file: string | null
+          concern_severity: string
+          concern_title: string
+          created_at: string
+          id: string
+          repo: string
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          concern_file?: string | null
+          concern_severity: string
+          concern_title: string
+          created_at?: string
+          id?: string
+          repo: string
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          concern_file?: string | null
+          concern_severity?: string
+          concern_title?: string
+          created_at?: string
+          id?: string
+          repo?: string
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_outcomes_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "review_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_sessions: {
+        Row: {
+          comments_posted: number | null
+          concerns_approved: number | null
+          concerns_dismissed: number | null
+          concerns_edited: number | null
+          concerns_total: number | null
+          created_at: string
+          id: string
+          pr_number: number
+          pr_title: string | null
+          repo: string
+          risk_level: string | null
+          summary: string | null
+          user_id: string
+        }
+        Insert: {
+          comments_posted?: number | null
+          concerns_approved?: number | null
+          concerns_dismissed?: number | null
+          concerns_edited?: number | null
+          concerns_total?: number | null
+          created_at?: string
+          id?: string
+          pr_number: number
+          pr_title?: string | null
+          repo: string
+          risk_level?: string | null
+          summary?: string | null
+          user_id: string
+        }
+        Update: {
+          comments_posted?: number | null
+          concerns_approved?: number | null
+          concerns_dismissed?: number | null
+          concerns_edited?: number | null
+          concerns_total?: number | null
+          created_at?: string
+          id?: string
+          pr_number?: number
+          pr_title?: string | null
+          repo?: string
+          risk_level?: string | null
+          summary?: string | null
           user_id?: string
         }
         Relationships: []
