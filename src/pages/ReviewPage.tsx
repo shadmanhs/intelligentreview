@@ -6,6 +6,7 @@ import { ReviewSummary } from "@/components/review/ReviewSummary";
 import { FilesChangedView } from "@/components/review/FilesChangedView";
 import { PRContextPanel } from "@/components/review/PRContextPanel";
 import { getGitHubToken, analyzePR, postReview } from "@/lib/github";
+import { saveReviewSession } from "@/lib/reviewStorage";
 import { useSubscription } from "@/hooks/useSubscription";
 import { AIConcern } from "@/types/review";
 import { ArrowLeft, ExternalLink, AlertTriangle, Code, Send, Loader2, Keyboard } from "lucide-react";
@@ -33,6 +34,7 @@ export default function ReviewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inlineComments, setInlineComments] = useState<InlineComment[]>([]);
+  const [prTitle, setPrTitle] = useState("");
 
   useEffect(() => {
     loadAnalysis();
@@ -76,6 +78,7 @@ export default function ReviewPage() {
       setSummary(data.summary || "");
       setRiskLevel(data.riskLevel || "medium");
       setFiles(data.files || []);
+      setPrTitle(data.prTitle || "");
 
       await recordUsage(`${owner}/${repo}`, Number(number));
     } catch (err: any) {
@@ -122,6 +125,18 @@ export default function ReviewPage() {
       const allComments = [...aiComments, ...inlineCommentsFormatted];
 
       await postReview(token, owner!, repo!, Number(number), allComments);
+
+      // Save review session and outcomes for intelligence
+      await saveReviewSession({
+        repo: `${owner}/${repo}`,
+        prNumber: Number(number),
+        prTitle,
+        summary,
+        riskLevel,
+        concerns,
+        commentsPosted: allComments.length,
+      });
+
       toast.success(`${allComments.length} comments posted to GitHub`);
       navigate("/app");
     } catch (err: any) {
