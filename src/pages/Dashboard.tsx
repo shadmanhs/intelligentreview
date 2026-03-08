@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
 import { useSubscription } from "@/hooks/useSubscription";
 import { getGitHubToken, fetchPRs } from "@/lib/github";
-import { Clock, ChevronRight, FileCode, Loader2, Lock, Sparkles } from "lucide-react";
+import { Clock, ChevronRight, FileCode, Loader2, Lock, Sparkles, Zap } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
