@@ -186,7 +186,7 @@ export function FilesChangedView({ files, owner, repo, prNumber }: FilesChangedV
                     <Sparkles className="h-3.5 w-3.5 text-primary" strokeWidth={1.5} />
                     <span className="text-xs font-medium text-foreground uppercase tracking-wider">AI explanation</span>
                   </div>
-                  <div className="prose prose-sm dark:prose-invert max-w-none text-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_p]:text-sm [&_li]:text-sm [&_strong]:text-foreground [&_code]:text-xs [&_code]:bg-secondary [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_pre]:bg-secondary [&_pre]:text-xs">
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-foreground [&_h1]:text-base [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-sm [&_h2]:mt-5 [&_h2]:mb-2.5 [&_h3]:text-sm [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:mb-3 [&_ul]:my-3 [&_ul]:space-y-1.5 [&_ol]:my-3 [&_ol]:space-y-1.5 [&_li]:text-sm [&_li]:leading-relaxed [&_strong]:text-foreground [&_code]:text-xs [&_code]:bg-secondary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_pre]:bg-secondary [&_pre]:text-xs [&_pre]:p-3 [&_pre]:my-3 [&_pre]:rounded-md [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:my-3 [&_blockquote]:text-muted-foreground [&_hr]:my-4">
                     <ReactMarkdown>{aiExplanation}</ReactMarkdown>
                   </div>
                 </div>
