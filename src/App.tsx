@@ -10,6 +10,7 @@ import LoginPage from "./pages/LoginPage";
 import ConnectGitHub from "./pages/ConnectGitHub";
 import Dashboard from "./pages/Dashboard";
 import ReviewPage from "./pages/ReviewPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
