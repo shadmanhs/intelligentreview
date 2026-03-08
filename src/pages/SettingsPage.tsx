@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { toast } from "sonner";
@@ -15,6 +16,8 @@ import {
   Loader2,
   KeyRound,
   Shield,
+  CreditCard,
+  Sparkles,
 } from "lucide-react";
 
 interface Profile {
