@@ -2,17 +2,19 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useOrganization } from "@/hooks/useOrganization";
 import { useKeyboardNav } from "@/hooks/useKeyboardNav";
 import { getGitHubToken, fetchPRs } from "@/lib/github";
 import { PRFilters, SortField } from "@/components/dashboard/PRFilters";
 import { PRCard } from "@/components/dashboard/PRCard";
-import { Lock, Loader2, Sparkles, Zap, Keyboard } from "lucide-react";
+import { Lock, Loader2, Sparkles, Zap, Keyboard, Users, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { subscribed, checkSubscription, reviewsRemaining } = useSubscription();
+  const { org } = useOrganization();
   const [prs, setPrs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("");
@@ -56,14 +58,8 @@ export default function Dashboard() {
   // Filter + sort
   const processedPrs = useMemo(() => {
     let result = [...prs];
-
-    // Filter by repo
     if (selectedRepo) result = result.filter((pr) => pr.repo === selectedRepo);
-
-    // Filter drafts
     if (!showDrafts) result = result.filter((pr) => !pr.draft);
-
-    // Sort
     result.sort((a, b) => {
       switch (sortField) {
         case "updated":
@@ -76,7 +72,6 @@ export default function Dashboard() {
           return 0;
       }
     });
-
     return result;
   }, [prs, selectedRepo, showDrafts, sortField]);
 
@@ -103,7 +98,6 @@ export default function Dashboard() {
     enabled: !loading && visiblePrs.length > 0,
   });
 
-  // Reset selection when filters change
   useEffect(() => { setSelectedIndex(0); }, [sortField, selectedRepo, showDrafts]);
 
   return (
@@ -113,20 +107,20 @@ export default function Dashboard() {
         {/* Header */}
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-lg font-medium tracking-tight text-foreground mb-1">Your review queue</h1>
+            <h1 className="text-lg font-medium tracking-tight text-foreground mb-1">
+              {org ? `${org.name} — Review Queue` : "Your review queue"}
+            </h1>
             <p className="text-sm text-muted-foreground">
               {loading ? "Loading..." : `${prs.length} PR${prs.length !== 1 ? "s" : ""} awaiting your review`}
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            {/* Keyboard hint */}
             {!loading && visiblePrs.length > 0 && (
               <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-muted-foreground/50">
                 <Keyboard className="h-3 w-3" strokeWidth={1.5} />
                 <span>j/k navigate · Enter open</span>
               </div>
             )}
-            {/* Usage counter */}
             {!subscribed && !loading && (
               <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-card">
                 <Zap className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
@@ -141,6 +135,23 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Team onboarding nudge — show if subscribed but no org */}
+        {subscribed && !org && !loading && (
+          <div className="border border-dashed rounded-lg p-4 mb-6 flex items-center gap-3">
+            <Users className="h-4 w-4 text-muted-foreground shrink-0" strokeWidth={1.5} />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-foreground">Set up your team workspace</p>
+              <p className="text-[10px] text-muted-foreground">Invite engineers, share review rules, and track team-wide ROI.</p>
+            </div>
+            <button
+              onClick={() => navigate("/app/team")}
+              className="text-[11px] px-3 py-1.5 rounded bg-foreground text-background hover:bg-foreground/90 transition-colors shrink-0 flex items-center gap-1"
+            >
+              Set up <ArrowRight className="h-3 w-3" strokeWidth={1.5} />
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
@@ -152,7 +163,6 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            {/* Filters */}
             <PRFilters
               repos={repos}
               selectedRepo={selectedRepo}
@@ -167,7 +177,6 @@ export default function Dashboard() {
             />
 
             <div className="border rounded-lg divide-y overflow-hidden">
-              {/* Visible PRs */}
               {visiblePrs.map((pr: any, i: number) => (
                 <PRCard
                   key={pr.id}
@@ -177,7 +186,6 @@ export default function Dashboard() {
                 />
               ))}
 
-              {/* Locked / blurred PRs */}
               {lockedPrs.map((pr: any, i: number) => (
                 <div key={pr.id} className="w-full text-left px-4 py-3.5 relative select-none">
                   <div className="blur-[6px] pointer-events-none">
@@ -203,7 +211,7 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Upgrade CTA */}
+            {/* Upgrade CTA — team-aware */}
             {lockedPrs.length > 0 && (
               <div className="mt-4 border rounded-lg p-5 text-center bg-card">
                 <div className="flex items-center justify-center gap-2 mb-2">
@@ -213,13 +221,13 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <p className="text-xs text-muted-foreground mb-4">
-                  Free plan includes 1 review per week. Upgrade to Pro for unlimited AI-powered reviews.
+                  Upgrade your team to unlock unlimited AI-powered reviews, shared rules, and team analytics.
                 </p>
                 <button
                   onClick={() => navigate("/pricing")}
                   className="text-sm px-5 py-2.5 rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors"
                 >
-                  Upgrade to Pro — $10/mo
+                  View plans
                 </button>
               </div>
             )}

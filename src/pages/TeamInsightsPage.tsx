@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
-import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, BarChart3, Users, Loader2, Zap, FileCode, Target,
-  TrendingUp, Shield, Clock, DollarSign
+  TrendingUp, Shield, DollarSign, AlertTriangle
 } from "lucide-react";
 
 interface MemberStats {
@@ -22,7 +21,6 @@ interface MemberStats {
 
 export default function TeamInsightsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { org, members, loading: orgLoading } = useOrganization();
   const [sessions, setSessions] = useState<any[]>([]);
   const [outcomes, setOutcomes] = useState<any[]>([]);
@@ -30,16 +28,14 @@ export default function TeamInsightsPage() {
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "all">("30d");
 
   useEffect(() => {
-    if (org && members.length > 0) loadTeamData();
-  }, [org, members]);
+    if (org) loadTeamData();
+  }, [org]);
 
   const loadTeamData = async () => {
-    const userIds = members.map((m) => m.user_id);
-
-    const [sessionsRes, outcomesRes] = await Promise.all([
-      supabase.from("review_sessions").select("*").in("user_id", userIds).order("created_at", { ascending: false }),
-      supabase.from("review_outcomes").select("*").in("user_id", userIds).order("created_at", { ascending: false }),
-    ]);
+    if (!org) return;
+    // Query by org_id — RLS now allows org members to see all org data
+    const sessionsRes = await (supabase.from("review_sessions").select("*") as any).eq("org_id", org.id).order("created_at", { ascending: false });
+    const outcomesRes = await (supabase.from("review_outcomes").select("*") as any).eq("org_id", org.id).order("created_at", { ascending: false });
 
     setSessions(sessionsRes.data || []);
     setOutcomes(outcomesRes.data || []);
@@ -70,9 +66,11 @@ export default function TeamInsightsPage() {
     const timeSavedMin = approved * 5;
     const highRisk = filteredSessions.filter((s: any) => s.risk_level === "high").length;
     const costPerSeat = 25;
-    const roi = members.length > 0 ? Math.round((timeSavedMin / 60) * 80 / (members.length * costPerSeat) * 100) : 0;
+    const monthlyValue = Math.round((timeSavedMin / 60) * 80);
+    const monthlyCost = members.length * costPerSeat;
+    const roi = monthlyCost > 0 ? Math.round((monthlyValue / monthlyCost) * 100) : 0;
 
-    return { totalReviews, commentsPosted, approvalRate, timeSavedMin, highRisk, roi };
+    return { totalReviews, commentsPosted, approvalRate, timeSavedMin, highRisk, roi, monthlyValue, monthlyCost };
   }, [filteredSessions, filteredOutcomes, members]);
 
   // Per-member breakdown
@@ -111,6 +109,15 @@ export default function TeamInsightsPage() {
       .map(([repo, data]) => ({ repo, ...data, reviewerCount: data.reviewers.size }));
   }, [filteredSessions]);
 
+  // Severity trend
+  const severityBreakdown = useMemo(() => {
+    const counts = { critical: 0, warning: 0, suggestion: 0 };
+    filteredOutcomes.forEach((o: any) => {
+      if (o.concern_severity in counts) counts[o.concern_severity as keyof typeof counts]++;
+    });
+    return counts;
+  }, [filteredOutcomes]);
+
   if (orgLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
@@ -140,6 +147,8 @@ export default function TeamInsightsPage() {
     );
   }
 
+  const hasData = sessions.length > 0;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <AppHeader showUser />
@@ -151,7 +160,7 @@ export default function TeamInsightsPage() {
             </button>
             <div>
               <h1 className="text-lg font-medium tracking-tight text-foreground">Team Analytics — {org.name}</h1>
-              <p className="text-xs text-muted-foreground">{members.length} members · Review patterns across your team</p>
+              <p className="text-xs text-muted-foreground">{members.length} members · {sessions.length} total reviews</p>
             </div>
           </div>
           <div className="flex items-center gap-1 border rounded-md overflow-hidden">
@@ -169,120 +178,152 @@ export default function TeamInsightsPage() {
           </div>
         </div>
 
-        {/* Team metrics */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          {[
-            { label: "Team reviews", value: teamStats.totalReviews, icon: FileCode },
-            { label: "Comments posted", value: teamStats.commentsPosted, icon: Target },
-            { label: "AI approval rate", value: `${teamStats.approvalRate}%`, icon: TrendingUp },
-            { label: "High risk caught", value: teamStats.highRisk, icon: Shield },
-            { label: "Time saved", value: teamStats.timeSavedMin > 60 ? `${Math.round(teamStats.timeSavedMin / 60)}h` : `${teamStats.timeSavedMin}m`, icon: Zap },
-            { label: "ROI", value: `${teamStats.roi}%`, icon: DollarSign },
-          ].map(({ label, value, icon: Icon }) => (
-            <div key={label} className="border rounded-lg p-4">
-              <div className="flex items-center gap-1.5 mb-2">
-                <Icon className="h-3 w-3 text-muted-foreground" strokeWidth={1.5} />
-                <span className="text-[9px] text-muted-foreground uppercase tracking-wider">{label}</span>
+        {!hasData ? (
+          <div className="text-center py-16 border rounded-lg">
+            <BarChart3 className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" strokeWidth={1} />
+            <p className="text-sm text-foreground mb-1">No team review data yet</p>
+            <p className="text-xs text-muted-foreground mb-4 max-w-sm mx-auto">
+              When team members complete AI-powered reviews, analytics will appear here automatically.
+              Each review contributes to team-wide insights and ROI tracking.
+            </p>
+            <button onClick={() => navigate("/app")} className="text-xs px-4 py-2 rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors">
+              Start reviewing
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* ROI Hero — The number CTOs care about most */}
+            <div className="border-2 border-foreground/20 rounded-lg p-6 mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <DollarSign className="h-4 w-4 text-foreground" strokeWidth={1.5} />
+                <span className="text-sm font-medium text-foreground">ROI This Period</span>
               </div>
-              <p className="text-lg font-medium text-foreground">{value}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 text-center">
+                <div>
+                  <p className="text-3xl font-medium text-foreground">
+                    {teamStats.timeSavedMin > 60 ? `${Math.round(teamStats.timeSavedMin / 60)}h` : `${teamStats.timeSavedMin}m`}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Engineering time saved</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-medium text-foreground">${teamStats.monthlyValue.toLocaleString()}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Value at $80/hr</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-medium text-foreground">${teamStats.monthlyCost}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">ReviewLens cost</p>
+                </div>
+                <div className={teamStats.roi > 100 ? "text-success" : ""}>
+                  <p className="text-3xl font-medium">{teamStats.roi}%</p>
+                  <p className="text-[10px] uppercase tracking-wider mt-1 opacity-70">ROI</p>
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
 
-        {/* Member leaderboard */}
-        <div className="border rounded-lg mb-8">
-          <div className="px-4 py-3 border-b flex items-center gap-2">
-            <Users className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
-            <span className="text-xs font-medium text-foreground">Member Activity</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-[10px] text-muted-foreground uppercase tracking-wider border-b">
-                  <th className="text-left px-4 py-2 font-normal">Engineer</th>
-                  <th className="text-right px-4 py-2 font-normal">Reviews</th>
-                  <th className="text-right px-4 py-2 font-normal">Comments</th>
-                  <th className="text-right px-4 py-2 font-normal">AI Approval</th>
-                  <th className="text-right px-4 py-2 font-normal">High Risk</th>
-                  <th className="text-right px-4 py-2 font-normal">Time Saved</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {memberStats.map((m) => (
-                  <tr key={m.userId} className="hover:bg-secondary/30 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        {m.avatar ? (
-                          <img src={m.avatar} alt="" className="h-5 w-5 rounded-full" />
-                        ) : (
-                          <div className="h-5 w-5 rounded-full bg-secondary flex items-center justify-center">
-                            <span className="text-[8px] text-muted-foreground font-medium">{m.name[0].toUpperCase()}</span>
-                          </div>
-                        )}
-                        <span className="text-xs text-foreground">{m.name}</span>
-                      </div>
-                    </td>
-                    <td className="text-right px-4 py-3 text-xs text-foreground">{m.reviews}</td>
-                    <td className="text-right px-4 py-3 text-xs text-foreground">{m.commentsPosted}</td>
-                    <td className="text-right px-4 py-3 text-xs text-foreground">{m.approvalRate}%</td>
-                    <td className="text-right px-4 py-3 text-xs text-foreground">{m.highRiskCaught}</td>
-                    <td className="text-right px-4 py-3 text-xs text-muted-foreground">{m.timeSaved}m</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Repo hotspots */}
-        {topRepos.length > 0 && (
-          <div className="border rounded-lg mb-8">
-            <div className="px-4 py-3 border-b flex items-center gap-2">
-              <BarChart3 className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
-              <span className="text-xs font-medium text-foreground">Repository Hotspots</span>
-            </div>
-            <div className="divide-y">
-              {topRepos.map((r) => (
-                <div key={r.repo} className="px-4 py-3 flex items-center gap-4">
-                  <span className="text-xs font-mono text-foreground flex-1 truncate">{r.repo}</span>
-                  <span className="text-[10px] text-muted-foreground">{r.reviews} reviews</span>
-                  <span className="text-[10px] text-muted-foreground">{r.reviewerCount} reviewer{r.reviewerCount !== 1 ? "s" : ""}</span>
-                  {r.highRisk > 0 && (
-                    <span className="text-[10px] text-destructive">{r.highRisk} high risk</span>
-                  )}
+            {/* Team metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+              {[
+                { label: "Team reviews", value: teamStats.totalReviews, icon: FileCode },
+                { label: "Comments posted", value: teamStats.commentsPosted, icon: Target },
+                { label: "AI approval rate", value: `${teamStats.approvalRate}%`, icon: TrendingUp },
+                { label: "High risk caught", value: teamStats.highRisk, icon: Shield },
+                { label: "Time saved", value: teamStats.timeSavedMin > 60 ? `${Math.round(teamStats.timeSavedMin / 60)}h` : `${teamStats.timeSavedMin}m`, icon: Zap },
+              ].map(({ label, value, icon: Icon }) => (
+                <div key={label} className="border rounded-lg p-4">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Icon className="h-3 w-3 text-muted-foreground" strokeWidth={1.5} />
+                    <span className="text-[9px] text-muted-foreground uppercase tracking-wider">{label}</span>
+                  </div>
+                  <p className="text-lg font-medium text-foreground">{value}</p>
                 </div>
               ))}
             </div>
-          </div>
-        )}
 
-        {/* ROI summary */}
-        <div className="border-2 border-foreground/10 rounded-lg p-6">
-          <div className="flex items-center gap-2 mb-3">
-            <DollarSign className="h-4 w-4 text-foreground" strokeWidth={1.5} />
-            <span className="text-sm font-medium text-foreground">ROI Summary</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-            <div>
-              <p className="text-2xl font-medium text-foreground">
-                {teamStats.timeSavedMin > 60 ? `${Math.round(teamStats.timeSavedMin / 60)}h` : `${teamStats.timeSavedMin}m`}
-              </p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Engineering time saved</p>
+            {/* Severity overview */}
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              {[
+                { label: "Critical", count: severityBreakdown.critical, color: "text-destructive", bg: "bg-destructive/10" },
+                { label: "Warning", count: severityBreakdown.warning, color: "text-warning", bg: "bg-warning/10" },
+                { label: "Suggestion", count: severityBreakdown.suggestion, color: "text-success", bg: "bg-success/10" },
+              ].map(({ label, count, color, bg }) => (
+                <div key={label} className={`${bg} rounded-lg p-4 text-center`}>
+                  <p className={`text-2xl font-medium ${color}`}>{count}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">{label} issues</p>
+                </div>
+              ))}
             </div>
-            <div>
-              <p className="text-2xl font-medium text-foreground">
-                ${Math.round((teamStats.timeSavedMin / 60) * 80)}
-              </p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Value at $80/hr loaded</p>
+
+            {/* Member leaderboard */}
+            <div className="border rounded-lg mb-8">
+              <div className="px-4 py-3 border-b flex items-center gap-2">
+                <Users className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+                <span className="text-xs font-medium text-foreground">Engineer Activity</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-[10px] text-muted-foreground uppercase tracking-wider border-b">
+                      <th className="text-left px-4 py-2 font-normal">Engineer</th>
+                      <th className="text-right px-4 py-2 font-normal">Reviews</th>
+                      <th className="text-right px-4 py-2 font-normal">Comments</th>
+                      <th className="text-right px-4 py-2 font-normal">AI Approval</th>
+                      <th className="text-right px-4 py-2 font-normal">High Risk</th>
+                      <th className="text-right px-4 py-2 font-normal">Time Saved</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {memberStats.map((m) => (
+                      <tr key={m.userId} className="hover:bg-secondary/30 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            {m.avatar ? (
+                              <img src={m.avatar} alt="" className="h-5 w-5 rounded-full" />
+                            ) : (
+                              <div className="h-5 w-5 rounded-full bg-secondary flex items-center justify-center">
+                                <span className="text-[8px] text-muted-foreground font-medium">{m.name[0]?.toUpperCase()}</span>
+                              </div>
+                            )}
+                            <span className="text-xs text-foreground">{m.name}</span>
+                          </div>
+                        </td>
+                        <td className="text-right px-4 py-3 text-xs text-foreground">{m.reviews}</td>
+                        <td className="text-right px-4 py-3 text-xs text-foreground">{m.commentsPosted}</td>
+                        <td className="text-right px-4 py-3 text-xs text-foreground">{m.approvalRate}%</td>
+                        <td className="text-right px-4 py-3 text-xs text-foreground">{m.highRiskCaught}</td>
+                        <td className="text-right px-4 py-3 text-xs text-muted-foreground">{m.timeSaved}m</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-medium text-foreground">
-                ${members.length * 25}
-              </p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Monthly cost</p>
-            </div>
-          </div>
-        </div>
+
+            {/* Repo hotspots */}
+            {topRepos.length > 0 && (
+              <div className="border rounded-lg">
+                <div className="px-4 py-3 border-b flex items-center gap-2">
+                  <BarChart3 className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+                  <span className="text-xs font-medium text-foreground">Repository Hotspots</span>
+                </div>
+                <div className="divide-y">
+                  {topRepos.map((r) => (
+                    <div key={r.repo} className="px-4 py-3 flex items-center gap-4">
+                      <span className="text-xs font-mono text-foreground flex-1 truncate">{r.repo}</span>
+                      <span className="text-[10px] text-muted-foreground">{r.reviews} reviews</span>
+                      <span className="text-[10px] text-muted-foreground">{r.reviewerCount} reviewer{r.reviewerCount !== 1 ? "s" : ""}</span>
+                      {r.highRisk > 0 && (
+                        <span className="text-[10px] text-destructive flex items-center gap-1">
+                          <AlertTriangle className="h-2.5 w-2.5" strokeWidth={1.5} />
+                          {r.highRisk} high risk
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </main>
     </div>
   );
