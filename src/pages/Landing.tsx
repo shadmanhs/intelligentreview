@@ -44,21 +44,27 @@ export default function Landing() {
         <div className="max-w-2xl">
           <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">For engineering teams that ship fast</p>
           <h1 className="text-3xl sm:text-4xl font-medium tracking-tight text-foreground leading-tight mb-4">
-            Review PRs in 5 minutes,<br />not 30.
+            Your team reviews PRs<br />in 5 minutes, not 30.
           </h1>
           <p className="text-base text-muted-foreground leading-relaxed mb-8 max-w-lg">
             AI reads the diff, learns your team's patterns, and surfaces what matters — with draft comments
-            you approve, edit, or dismiss. Gets smarter with every review.
+            engineers approve, edit, or dismiss. Team-wide analytics show ROI from day one.
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={() => navigate("/login")}
               className="text-sm px-5 py-2.5 rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors flex items-center gap-2"
             >
               Start reviewing <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
             </button>
-            <span className="text-xs text-muted-foreground">1 free review/week · No credit card</span>
+            <button
+              onClick={() => navigate("/pricing")}
+              className="text-sm px-5 py-2.5 rounded-md border text-foreground hover:bg-secondary transition-colors"
+            >
+              See team pricing
+            </button>
           </div>
+          <p className="text-xs text-muted-foreground mt-3">Free for individuals · $25/seat for teams</p>
         </div>
       </section>
 
