@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { GitPullRequest, Settings, LogOut, ChevronDown } from "lucide-react";
+import { GitPullRequest, Settings, LogOut, ChevronDown, BarChart3, Shield, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AppHeaderProps {
@@ -11,6 +11,7 @@ interface AppHeaderProps {
 export function AppHeader({ showUser }: AppHeaderProps) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState<{ display_name: string | null; avatar_url: string | null } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -42,15 +43,44 @@ export function AppHeader({ showUser }: AppHeaderProps) {
 
   const initial = (profile?.display_name || user?.email || "?")[0].toUpperCase();
 
+  const navLinks = [
+    { path: "/app", label: "Queue" },
+    { path: "/app/insights", label: "Insights", icon: BarChart3 },
+    { path: "/app/rules", label: "Rules", icon: BookOpen },
+  ];
+
   return (
     <header className="h-12 border-b bg-card/50 flex items-center px-5 justify-between shrink-0">
-      <button
-        onClick={() => navigate("/app")}
-        className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
-      >
-        <GitPullRequest className="h-4 w-4 text-foreground" strokeWidth={1.5} />
-        <span className="font-medium text-foreground text-sm tracking-tight">ReviewLens</span>
-      </button>
+      <div className="flex items-center gap-6">
+        <button
+          onClick={() => navigate("/app")}
+          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+        >
+          <GitPullRequest className="h-4 w-4 text-foreground" strokeWidth={1.5} />
+          <span className="font-medium text-foreground text-sm tracking-tight">ReviewLens</span>
+        </button>
+
+        {showUser && user && (
+          <nav className="hidden sm:flex items-center gap-1">
+            {navLinks.map(({ path, label }) => {
+              const isActive = location.pathname === path;
+              return (
+                <button
+                  key={path}
+                  onClick={() => navigate(path)}
+                  className={`text-[11px] px-2.5 py-1 rounded transition-colors ${
+                    isActive
+                      ? "text-foreground bg-secondary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </nav>
+        )}
+      </div>
 
       {showUser && user && (
         <div className="relative" ref={menuRef}>
@@ -74,6 +104,20 @@ export function AppHeader({ showUser }: AppHeaderProps) {
               <div className="px-3 py-2 border-b">
                 <p className="text-xs font-medium text-foreground truncate">{profile?.display_name || "—"}</p>
                 <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+              </div>
+
+              {/* Mobile nav */}
+              <div className="sm:hidden border-b">
+                {navLinks.map(({ path, label, icon: Icon }) => (
+                  <button
+                    key={path}
+                    onClick={() => { setOpen(false); navigate(path); }}
+                    className="w-full px-3 py-2 text-left text-xs text-foreground hover:bg-secondary/50 transition-colors flex items-center gap-2"
+                  >
+                    {Icon && <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />}
+                    {label}
+                  </button>
+                ))}
               </div>
 
               <button

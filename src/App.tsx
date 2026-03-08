@@ -13,6 +13,9 @@ import Dashboard from "./pages/Dashboard";
 import ReviewPage from "./pages/ReviewPage";
 import SettingsPage from "./pages/SettingsPage";
 import PricingPage from "./pages/PricingPage";
+import InsightsPage from "./pages/InsightsPage";
+import SecurityPage from "./pages/SecurityPage";
+import RulesPage from "./pages/RulesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +32,7 @@ const App = () => (
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/security" element={<SecurityPage />} />
               <Route
                 path="/connect-github"
                 element={
@@ -50,6 +54,22 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <ReviewPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/app/insights"
+                element={
+                  <ProtectedRoute>
+                    <InsightsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/app/rules"
+                element={
+                  <ProtectedRoute>
+                    <RulesPage />
                   </ProtectedRoute>
                 }
               />

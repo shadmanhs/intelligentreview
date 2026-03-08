@@ -110,9 +110,10 @@ export default function PricingPage() {
             <div className="space-y-3 mb-6">
               {[
                 "Unlimited AI reviews",
-                "Priority analysis speed",
-                "Repo-aware coding standards",
+                "Custom review rules per repo",
+                "Review intelligence dashboard",
                 "AI diff explanations",
+                "Priority analysis speed",
                 "Everything in Free",
               ].map((f) => (
                 <div key={f} className="flex items-start gap-2">

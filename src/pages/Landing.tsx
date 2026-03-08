@@ -1,4 +1,4 @@
-import { GitPullRequest, ArrowRight, Zap, Shield, Brain, Clock, CheckCircle, Check, Sparkles } from "lucide-react";
+import { GitPullRequest, ArrowRight, Zap, Shield, Brain, Clock, CheckCircle, Check, Sparkles, BarChart3, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Landing() {
@@ -14,8 +14,8 @@ export default function Landing() {
             <span className="font-medium text-sm tracking-tight">ReviewLens</span>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate("/login")} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-              Sign in
+            <button onClick={() => navigate("/security")} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Security
             </button>
             <button
               onClick={() => {
@@ -25,6 +25,9 @@ export default function Landing() {
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               Pricing
+            </button>
+            <button onClick={() => navigate("/login")} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Sign in
             </button>
             <button
               onClick={() => navigate("/login")}
@@ -39,14 +42,13 @@ export default function Landing() {
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-6 pt-24 pb-20">
         <div className="max-w-2xl">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">For staff+ engineers</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">For engineering teams that ship fast</p>
           <h1 className="text-3xl sm:text-4xl font-medium tracking-tight text-foreground leading-tight mb-4">
             Review PRs in 5 minutes,<br />not 30.
           </h1>
           <p className="text-base text-muted-foreground leading-relaxed mb-8 max-w-lg">
-            AI reads the diff and surfaces what matters — security issues, missing tests, 
-            architectural concerns — with draft comments you approve, edit, or dismiss. 
-            Then post to GitHub.
+            AI reads the diff, learns your team's patterns, and surfaces what matters — with draft comments
+            you approve, edit, or dismiss. Gets smarter with every review.
           </p>
           <div className="flex items-center gap-3">
             <button
@@ -134,6 +136,41 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* What makes us different */}
+      <section className="border-t">
+        <div className="max-w-4xl mx-auto px-6 py-20">
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">What GitHub doesn't do</p>
+          <h2 className="text-xl font-medium text-foreground mb-8 max-w-md">
+            ReviewLens learns your standards and gets smarter over time.
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            {[
+              {
+                icon: BookOpen,
+                title: "Custom review rules",
+                desc: "Define per-repo rules like 'always check for SQL injection in API routes.' The AI enforces them every time.",
+              },
+              {
+                icon: BarChart3,
+                title: "Review intelligence",
+                desc: "Track patterns across repos: which modules have the most issues, what concerns you dismiss most, and estimated time saved.",
+              },
+              {
+                icon: Brain,
+                title: "Learns from your decisions",
+                desc: "Every approve and dismiss teaches ReviewLens what matters to you. Over time, less noise, more signal.",
+              },
+            ].map((item) => (
+              <div key={item.title}>
+                <item.icon className="h-4 w-4 text-foreground mb-2" strokeWidth={1.5} />
+                <h3 className="text-sm font-medium text-foreground mb-1">{item.title}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section className="border-t">
         <div className="max-w-4xl mx-auto px-6 py-20">
@@ -142,10 +179,12 @@ export default function Landing() {
             {[
               "AI-powered concern detection with severity ranking",
               "Draft comments you approve in one click",
-              "Risk-sorted review queue across all your repos",
+              "Custom per-repo review rules",
+              "Review intelligence dashboard with patterns & trends",
               "Security, architecture, and test coverage analysis",
+              "Repo-aware coding standards detection",
+              "Full diff viewer with AI explanations",
               "Batch post to GitHub — no copy-pasting",
-              "Full diff available when you need to go deeper",
             ].map((feature) => (
               <div key={feature} className="flex items-start gap-3">
                 <CheckCircle className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={1.5} />
@@ -197,7 +236,14 @@ export default function Landing() {
                 <span className="text-xs text-muted-foreground">/month</span>
               </div>
               <div className="space-y-2.5 mb-6">
-                {["Unlimited AI reviews", "Priority analysis speed", "Repo-aware coding standards", "AI diff explanations", "Everything in Free"].map((f) => (
+                {[
+                  "Unlimited AI reviews",
+                  "Custom review rules per repo",
+                  "Review intelligence dashboard",
+                  "AI diff explanations",
+                  "Priority analysis speed",
+                  "Everything in Free",
+                ].map((f) => (
                   <div key={f} className="flex items-start gap-2">
                     <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
                     <span className="text-sm text-foreground">{f}</span>
@@ -236,7 +282,15 @@ export default function Landing() {
             <GitPullRequest className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
             <span className="text-xs text-muted-foreground">ReviewLens</span>
           </div>
-          <span className="text-[10px] text-muted-foreground">Built for engineers who review code.</span>
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate("/security")} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+              Security
+            </button>
+            <button onClick={() => navigate("/pricing")} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+              Pricing
+            </button>
+            <span className="text-[10px] text-muted-foreground">Built for engineers who review code.</span>
+          </div>
         </div>
       </footer>
     </div>
