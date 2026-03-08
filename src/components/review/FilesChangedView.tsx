@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronRight, FileCode, Sparkles, Loader2, Plus, Minus } from "lucide-react";
 
