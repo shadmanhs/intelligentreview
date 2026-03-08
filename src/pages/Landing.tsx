@@ -46,7 +46,7 @@ export default function Landing() {
             >
               Start reviewing <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
             </button>
-            <span className="text-xs text-muted-foreground">Free · No credit card</span>
+            <span className="text-xs text-muted-foreground">1 free review/week · No credit card</span>
           </div>
         </div>
       </section>
