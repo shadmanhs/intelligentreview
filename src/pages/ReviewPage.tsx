@@ -15,6 +15,7 @@ type Tab = "concerns" | "diff" | "post";
 export default function ReviewPage() {
   const { owner, repo, number } = useParams();
   const navigate = useNavigate();
+  const { recordUsage } = useSubscription();
   const [tab, setTab] = useState<Tab>("concerns");
   const [concerns, setConcerns] = useState<AIConcern[]>([]);
   const [summary, setSummary] = useState("");
