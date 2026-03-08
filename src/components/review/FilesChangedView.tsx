@@ -186,8 +186,8 @@ export function FilesChangedView({ files, owner, repo, prNumber }: FilesChangedV
                     <Sparkles className="h-3.5 w-3.5 text-primary" strokeWidth={1.5} />
                     <span className="text-xs font-medium text-foreground uppercase tracking-wider">AI explanation</span>
                   </div>
-                  <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                    {aiExplanation}
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_p]:text-sm [&_li]:text-sm [&_strong]:text-foreground [&_code]:text-xs [&_code]:bg-secondary [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_pre]:bg-secondary [&_pre]:text-xs">
+                    <ReactMarkdown>{aiExplanation}</ReactMarkdown>
                   </div>
                 </div>
               ) : null}
