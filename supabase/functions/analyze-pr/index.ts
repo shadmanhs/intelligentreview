@@ -18,26 +18,120 @@ serve(async (req) => {
       });
     }
 
-    // Fetch PR diff/files
-    const filesRes = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/pulls/${pr_number}/files?per_page=30`,
-      {
-        headers: { Authorization: `Bearer ${github_token}`, Accept: "application/vnd.github+json" },
-      }
-    );
+    const ghHeaders = { Authorization: `Bearer ${github_token}`, Accept: "application/vnd.github+json" };
+
+    // Fetch PR diff/files and repo context in parallel
+    const [filesRes, repoRes, treeRes] = await Promise.all([
+      fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${pr_number}/files?per_page=30`, { headers: ghHeaders }),
+      fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers: ghHeaders }),
+      fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/HEAD?recursive=1`, { headers: ghHeaders }),
+    ]);
+
     if (!filesRes.ok) throw new Error(`Failed to fetch PR files: ${filesRes.status}`);
     const files = await filesRes.json();
 
-    // Build a compact diff summary for AI
+    // Get repo language and structure for context
+    let repoContext = "";
+    if (repoRes.ok) {
+      const repoData = await repoRes.json();
+      repoContext += `Primary language: ${repoData.language || "unknown"}. `;
+    }
+
+    // Sample existing files for coding patterns (config files, linters, etc.)
+    if (treeRes.ok) {
+      const treeData = await treeRes.json();
+      const tree = treeData.tree || [];
+      
+      // Look for config/standard files that indicate coding patterns
+      const patternFiles = tree
+        .filter((f: any) => f.type === "blob")
+        .map((f: any) => f.path)
+        .filter((p: string) =>
+          p.match(/\.(eslintrc|prettierrc|editorconfig|tsconfig|biome)\b/i) ||
+          p.match(/^\.?(eslint|prettier|biome)\.(json|js|cjs|mjs|yaml|yml|toml)$/i) ||
+          p === "tsconfig.json" ||
+          p === ".editorconfig" ||
+          p === "deno.json" ||
+          p === "deno.jsonc"
+        );
+
+      if (patternFiles.length > 0) {
+        // Fetch up to 3 config files to understand coding standards
+        const configContents = await Promise.all(
+          patternFiles.slice(0, 3).map(async (path: string) => {
+            try {
+              const res = await fetch(
+                `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
+                { headers: ghHeaders }
+              );
+              if (!res.ok) return null;
+              const data = await res.json();
+              if (data.content && data.encoding === "base64") {
+                const decoded = atob(data.content);
+                return `--- ${path} ---\n${decoded.slice(0, 1500)}`;
+              }
+              return null;
+            } catch { return null; }
+          })
+        );
+
+        const validConfigs = configContents.filter(Boolean);
+        if (validConfigs.length > 0) {
+          repoContext += `\n\nRepo coding standards (from config files):\n${validConfigs.join("\n\n")}`;
+        }
+      }
+
+      // Also sample a few existing files similar to the changed files to understand patterns
+      const changedExtensions = new Set(files.map((f: any) => {
+        const ext = f.filename?.split(".").pop();
+        return ext ? `.${ext}` : "";
+      }).filter(Boolean));
+
+      const similarFiles = tree
+        .filter((f: any) => {
+          if (f.type !== "blob") return false;
+          const ext = f.path.split(".").pop();
+          return ext && changedExtensions.has(`.${ext}`);
+        })
+        .filter((f: any) => !files.some((changed: any) => changed.filename === f.path))
+        .slice(0, 2);
+
+      if (similarFiles.length > 0) {
+        const sampleContents = await Promise.all(
+          similarFiles.map(async (f: any) => {
+            try {
+              const res = await fetch(
+                `https://api.github.com/repos/${owner}/${repo}/contents/${f.path}`,
+                { headers: ghHeaders }
+              );
+              if (!res.ok) return null;
+              const data = await res.json();
+              if (data.content && data.encoding === "base64") {
+                const decoded = atob(data.content);
+                return `--- ${f.path} (existing file for pattern reference) ---\n${decoded.slice(0, 2000)}`;
+              }
+              return null;
+            } catch { return null; }
+          })
+        );
+
+        const validSamples = sampleContents.filter(Boolean);
+        if (validSamples.length > 0) {
+          repoContext += `\n\nExisting code patterns in the repo (use these to judge consistency):\n${validSamples.join("\n\n")}`;
+        }
+      }
+    }
+
+    // Build diff summary
     const diffSummary = files.map((f: any) => ({
       filename: f.filename,
       status: f.status,
       additions: f.additions,
       deletions: f.deletions,
-      patch: (f.patch || "").slice(0, 3000), // Limit patch size
+      patch: (f.patch || "").slice(0, 3000),
     }));
 
-    // Call Lovable AI to analyze
+    // Call AI with repo context
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -52,12 +146,19 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a senior staff engineer reviewing a pull request. Analyze the diff and identify concerns.
+            content: `You are a senior staff engineer reviewing a pull request. You have access to the repo's coding standards and existing code patterns.
+
+IMPORTANT: Compare the PR changes against the repo's established patterns. Flag deviations from:
+- Naming conventions used in existing files
+- Error handling patterns established in the codebase
+- Import/export patterns
+- Type safety patterns (if TypeScript)
+- Architecture patterns (file organization, abstraction layers)
 
 For each concern, provide:
 - severity: "critical" | "warning" | "suggestion" | "note"
 - title: Short description (max 10 words)
-- explanation: Why this matters (2-3 sentences)
+- explanation: Why this matters, referencing the repo's patterns when relevant (2-3 sentences)
 - file: The filename
 - lineStart: Approximate line number
 - codeSnippet: The relevant code (max 5 lines)
@@ -65,18 +166,18 @@ For each concern, provide:
 
 Focus on:
 1. Security issues (auth, injection, token handling, input validation)
-2. Missing error handling
-3. Race conditions or concurrency issues
-4. Missing tests for critical paths
+2. Deviations from established repo coding standards/patterns
+3. Missing error handling (especially if the repo has a pattern for it)
+4. Race conditions or concurrency issues
 5. Architectural concerns (coupling, wrong abstraction layer)
 6. Missing edge cases
+7. Inconsistent naming or patterns compared to existing code
 
-Be specific and actionable. Don't flag style issues unless they hurt readability.
-Return ONLY a JSON array of concerns. No markdown, no explanation outside the JSON.`,
+Be specific and actionable. Reference the repo's existing patterns when flagging inconsistencies.`,
           },
           {
             role: "user",
-            content: `Review this PR diff:\n\n${JSON.stringify(diffSummary, null, 2)}`,
+            content: `Repo context:\n${repoContext}\n\nPR diff:\n${JSON.stringify(diffSummary, null, 2)}`,
           },
         ],
         tools: [
@@ -121,14 +222,12 @@ Return ONLY a JSON array of concerns. No markdown, no explanation outside the JS
     if (!aiResponse.ok) {
       if (aiResponse.status === 429) {
         return new Response(JSON.stringify({ error: "AI rate limit exceeded, please try again in a moment" }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (aiResponse.status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted. Add credits in workspace settings." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const errText = await aiResponse.text();
@@ -147,7 +246,6 @@ Return ONLY a JSON array of concerns. No markdown, no explanation outside the JS
       }
     }
 
-    // Add IDs to concerns
     const concerns = (analysis.concerns || []).map((c: any, i: number) => ({
       ...c,
       id: `ai-${i}`,
