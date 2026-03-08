@@ -6,7 +6,8 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { useSubscription } from "@/hooks/useSubscription";
 import {
   ArrowLeft, Plus, Trash2, Loader2, Users, Mail, Shield, Crown,
-  UserPlus, Building2, Lock, Sparkles
+  UserPlus, Building2, Lock, Sparkles, ArrowRight, Check, BarChart3,
+  BookOpen, GitPullRequest
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,7 +28,7 @@ export default function TeamPage() {
     setSubmitting(true);
     try {
       await createOrg(orgName.trim());
-      toast.success("Team created");
+      toast.success("Team created! Now invite your engineers.");
       setCreating(false);
       setOrgName("");
     } catch (err: any) {
@@ -107,30 +108,51 @@ export default function TeamPage() {
     );
   }
 
-  // No org yet — create one
+  // No org yet — guided onboarding
   if (!org) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <AppHeader showUser />
-        <main className="flex-1 max-w-2xl mx-auto w-full px-6 py-8">
-          <div className="flex items-center gap-3 mb-8">
-            <button onClick={() => navigate("/app")} className="text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
-            </button>
-            <h1 className="text-lg font-medium tracking-tight text-foreground">Team</h1>
+        <main className="flex-1 max-w-lg mx-auto w-full px-6 py-12">
+          <div className="text-center mb-10">
+            <Building2 className="h-8 w-8 text-foreground mx-auto mb-4" strokeWidth={1} />
+            <h1 className="text-xl font-medium tracking-tight text-foreground mb-2">Set up your team workspace</h1>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+              Create a workspace to invite engineers, share review rules, and track team-wide analytics.
+            </p>
+          </div>
+
+          {/* Onboarding steps preview */}
+          <div className="space-y-3 mb-8">
+            {[
+              { step: 1, label: "Create your team", desc: "Name your workspace", active: true, icon: Building2 },
+              { step: 2, label: "Invite engineers", desc: "Send email invitations", active: false, icon: UserPlus },
+              { step: 3, label: "Set team rules", desc: "Define shared standards", active: false, icon: BookOpen },
+              { step: 4, label: "Start reviewing", desc: "See team analytics", active: false, icon: BarChart3 },
+            ].map((s) => (
+              <div key={s.step} className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${s.active ? "border-foreground/30 bg-card" : "opacity-40"}`}>
+                <span className={`text-[10px] h-6 w-6 rounded-full flex items-center justify-center font-mono ${s.active ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"}`}>
+                  {s.step}
+                </span>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-foreground">{s.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{s.desc}</p>
+                </div>
+                <s.icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+              </div>
+            ))}
           </div>
 
           {creating ? (
-            <div className="border rounded-lg p-6 max-w-md">
-              <Building2 className="h-5 w-5 text-foreground mb-3" strokeWidth={1.5} />
-              <h2 className="text-sm font-medium text-foreground mb-1">Create your team</h2>
-              <p className="text-xs text-muted-foreground mb-4">Your team name is visible to all members.</p>
+            <div className="border rounded-lg p-6">
+              <h2 className="text-sm font-medium text-foreground mb-1">Name your team</h2>
+              <p className="text-xs text-muted-foreground mb-4">Usually your company or engineering org name.</p>
               <input
                 type="text"
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
                 placeholder="e.g. Acme Engineering"
-                className="w-full px-3 py-2 text-sm border rounded-md bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all mb-3"
+                className="w-full px-3 py-2.5 text-sm border rounded-md bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 transition-all mb-3"
                 autoFocus
                 onKeyDown={(e) => e.key === "Enter" && handleCreateOrg()}
               />
@@ -138,34 +160,31 @@ export default function TeamPage() {
                 <button
                   onClick={handleCreateOrg}
                   disabled={!orgName.trim() || submitting}
-                  className="text-[11px] px-3 py-1.5 rounded bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 transition-colors"
+                  className="text-xs px-4 py-2 rounded-md bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 transition-colors flex items-center gap-1.5"
                 >
-                  {submitting ? "Creating…" : "Create team"}
+                  {submitting ? "Creating…" : "Create team"} <ArrowRight className="h-3 w-3" strokeWidth={1.5} />
                 </button>
-                <button onClick={() => setCreating(false)} className="text-[11px] text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={() => setCreating(false)} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
                   Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <div className="text-center py-16 border rounded-lg">
-              <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" strokeWidth={1} />
-              <p className="text-sm text-foreground mb-1">No team yet</p>
-              <p className="text-xs text-muted-foreground mb-4 max-w-sm mx-auto">
-                Create a team to invite engineers, share review rules, and see team-wide analytics.
-              </p>
-              <button
-                onClick={() => setCreating(true)}
-                className="text-xs px-4 py-2 rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors inline-flex items-center gap-1.5"
-              >
-                <Plus className="h-3 w-3" strokeWidth={1.5} /> Create team
-              </button>
-            </div>
+            <button
+              onClick={() => setCreating(true)}
+              className="w-full py-3 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2"
+            >
+              Create team workspace <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+            </button>
           )}
         </main>
       </div>
     );
   }
+
+  // Determine onboarding completeness
+  const hasMembers = members.length > 1 || invites.length > 0;
+  const onboardingComplete = hasMembers;
 
   const roleIcon = (role: string) => {
     if (role === "owner") return <Crown className="h-3 w-3 text-warning" strokeWidth={1.5} />;
@@ -188,24 +207,55 @@ export default function TeamPage() {
             {myRole}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground mb-8 ml-7">
-          {members.length} member{members.length !== 1 ? "s" : ""} · Manage your engineering team
+        <p className="text-xs text-muted-foreground mb-6 ml-7">
+          {members.length} member{members.length !== 1 ? "s" : ""} · ${members.length * 25}/month
         </p>
 
+        {/* Onboarding checklist — show until team has members */}
+        {!onboardingComplete && isAdmin && (
+          <div className="border-2 border-foreground/10 rounded-lg p-5 mb-6">
+            <p className="text-xs font-medium text-foreground mb-3">Getting started</p>
+            <div className="space-y-2">
+              {[
+                { label: "Create team workspace", done: true },
+                { label: "Invite at least one team member", done: hasMembers },
+                { label: "Set up shared review rules", done: false, action: () => navigate("/app/rules") },
+                { label: "View team analytics", done: false, action: () => navigate("/app/team/insights") },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center gap-2">
+                  {item.done ? (
+                    <Check className="h-3.5 w-3.5 text-success" strokeWidth={2} />
+                  ) : (
+                    <div className="h-3.5 w-3.5 rounded-full border" />
+                  )}
+                  <span className={`text-xs ${item.done ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                    {item.label}
+                  </span>
+                  {!item.done && item.action && (
+                    <button onClick={item.action} className="text-[10px] text-foreground underline ml-auto">
+                      Go →
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Stats bar */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="border rounded-lg p-4 text-center">
             <p className="text-xl font-medium text-foreground">{members.length}</p>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Members</p>
           </div>
           <div className="border rounded-lg p-4 text-center">
             <p className="text-xl font-medium text-foreground">{invites.length}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Pending invites</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Pending</p>
           </div>
-          <div className="border rounded-lg p-4 text-center">
-            <p className="text-xl font-medium text-foreground">${members.length * 25}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">/month est.</p>
-          </div>
+          <button onClick={() => navigate("/app/team/insights")} className="border rounded-lg p-4 text-center hover:bg-secondary/30 transition-colors">
+            <BarChart3 className="h-5 w-5 text-muted-foreground mx-auto mb-1" strokeWidth={1.5} />
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Analytics</p>
+          </button>
         </div>
 
         {/* Invite */}
@@ -335,6 +385,26 @@ export default function TeamPage() {
               );
             })}
           </div>
+        </div>
+
+        {/* Quick links */}
+        <div className="mt-8 grid grid-cols-2 gap-3">
+          <button
+            onClick={() => navigate("/app/rules")}
+            className="border rounded-lg p-4 text-left hover:bg-secondary/30 transition-colors"
+          >
+            <BookOpen className="h-4 w-4 text-muted-foreground mb-2" strokeWidth={1.5} />
+            <p className="text-xs font-medium text-foreground">Team Rules</p>
+            <p className="text-[10px] text-muted-foreground">Shared review standards</p>
+          </button>
+          <button
+            onClick={() => navigate("/app/team/insights")}
+            className="border rounded-lg p-4 text-left hover:bg-secondary/30 transition-colors"
+          >
+            <BarChart3 className="h-4 w-4 text-muted-foreground mb-2" strokeWidth={1.5} />
+            <p className="text-xs font-medium text-foreground">Team Analytics</p>
+            <p className="text-[10px] text-muted-foreground">ROI & activity</p>
+          </button>
         </div>
       </main>
     </div>

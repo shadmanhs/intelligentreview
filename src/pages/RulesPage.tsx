@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useOrganization } from "@/hooks/useOrganization";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Plus, Trash2, Shield, Loader2, ToggleLeft, ToggleRight,
-  Sparkles, Lock
+  Sparkles, Lock, Users, Building2
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,36 +17,53 @@ interface CustomRule {
   rule_text: string;
   enabled: boolean;
   created_at: string;
+  user_id: string;
+  org_id: string | null;
 }
 
 export default function RulesPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { subscribed } = useSubscription();
+  const { org, isAdmin } = useOrganization();
   const [rules, setRules] = useState<CustomRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [newRepo, setNewRepo] = useState("");
   const [newRule, setNewRule] = useState("");
+  const [newScope, setNewScope] = useState<"personal" | "team">("team");
 
   useEffect(() => {
     if (user) loadRules();
   }, [user]);
 
   const loadRules = async () => {
-    const { data } = await supabase
+    // Fetch personal rules + org rules (RLS handles filtering)
+    const query = supabase
       .from("custom_rules")
       .select("*")
-      .eq("user_id", user!.id)
       .order("created_at", { ascending: false });
+
+    // If user has an org, get both personal and org rules
+    if (org) {
+      query.or(`user_id.eq.${user!.id},org_id.eq.${org.id}`);
+    } else {
+      query.eq("user_id", user!.id);
+    }
+
+    const { data } = await query;
     setRules((data as CustomRule[]) || []);
     setLoading(false);
   };
 
   const handleAdd = async () => {
     if (!newRepo.trim() || !newRule.trim()) return;
+
+    const isOrgRule = newScope === "team" && org && isAdmin;
+
     const { error } = await supabase.from("custom_rules").insert({
       user_id: user!.id,
+      org_id: isOrgRule ? org!.id : null,
       repo: newRepo.trim(),
       rule_text: newRule.trim(),
     });
@@ -53,7 +71,7 @@ export default function RulesPage() {
       toast.error("Failed to add rule");
       return;
     }
-    toast.success("Rule added");
+    toast.success(isOrgRule ? "Team rule added — applies to all members" : "Personal rule added");
     setNewRepo("");
     setNewRule("");
     setAdding(false);
@@ -71,12 +89,27 @@ export default function RulesPage() {
     toast.success("Rule deleted");
   };
 
+  // Separate org rules from personal rules
+  const orgRules = rules.filter(r => r.org_id !== null);
+  const personalRules = rules.filter(r => r.org_id === null);
+
   // Group rules by repo
-  const groupedRules: Record<string, CustomRule[]> = {};
-  rules.forEach((r) => {
-    if (!groupedRules[r.repo]) groupedRules[r.repo] = [];
-    groupedRules[r.repo].push(r);
-  });
+  const groupBy = (items: CustomRule[]) => {
+    const grouped: Record<string, CustomRule[]> = {};
+    items.forEach((r) => {
+      if (!grouped[r.repo]) grouped[r.repo] = [];
+      grouped[r.repo].push(r);
+    });
+    return grouped;
+  };
+
+  const groupedOrgRules = groupBy(orgRules);
+  const groupedPersonalRules = groupBy(personalRules);
+
+  const canManageRule = (rule: CustomRule) => {
+    if (rule.org_id) return isAdmin;
+    return rule.user_id === user?.id;
+  };
 
   if (loading) {
     return (
@@ -97,10 +130,12 @@ export default function RulesPage() {
           <button onClick={() => navigate("/app")} className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
           </button>
-          <h1 className="text-lg font-medium tracking-tight text-foreground">Custom Review Rules</h1>
+          <h1 className="text-lg font-medium tracking-tight text-foreground">Review Rules</h1>
         </div>
         <p className="text-xs text-muted-foreground mb-8 ml-7">
-          Define per-repo rules that the AI will enforce during every review. These compound over time.
+          {org
+            ? "Team rules apply to all members. Personal rules apply only to you."
+            : "Define per-repo rules that the AI will enforce during every review."}
         </p>
 
         {!subscribed && (
@@ -108,12 +143,12 @@ export default function RulesPage() {
             <Lock className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" strokeWidth={1.5} />
             <div>
               <p className="text-sm font-medium text-foreground mb-1">Pro feature</p>
-              <p className="text-xs text-muted-foreground mb-3">Custom review rules are available on the Pro plan. Upgrade to teach ReviewLens your team's standards.</p>
+              <p className="text-xs text-muted-foreground mb-3">Custom review rules are available on paid plans. Upgrade to teach ReviewLens your team's standards.</p>
               <button
                 onClick={() => navigate("/pricing")}
                 className="text-xs px-3 py-1.5 rounded-md bg-foreground text-background hover:bg-foreground/90 transition-colors inline-flex items-center gap-1.5"
               >
-                <Sparkles className="h-3 w-3" strokeWidth={1.5} /> Upgrade to Pro
+                <Sparkles className="h-3 w-3" strokeWidth={1.5} /> View plans
               </button>
             </div>
           </div>
@@ -124,6 +159,33 @@ export default function RulesPage() {
             {/* Add rule */}
             {adding ? (
               <div className="border rounded-lg p-4 mb-6 space-y-3">
+                {/* Scope selector — only show if user has an org and is admin */}
+                {org && isAdmin && (
+                  <div>
+                    <label className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5 block">Scope</label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setNewScope("team")}
+                        className={`text-[11px] px-3 py-1.5 rounded border flex items-center gap-1.5 transition-colors ${
+                          newScope === "team" ? "border-foreground text-foreground bg-secondary" : "text-muted-foreground"
+                        }`}
+                      >
+                        <Building2 className="h-3 w-3" strokeWidth={1.5} /> Team rule
+                      </button>
+                      <button
+                        onClick={() => setNewScope("personal")}
+                        className={`text-[11px] px-3 py-1.5 rounded border flex items-center gap-1.5 transition-colors ${
+                          newScope === "personal" ? "border-foreground text-foreground bg-secondary" : "text-muted-foreground"
+                        }`}
+                      >
+                        Personal
+                      </button>
+                    </div>
+                    {newScope === "team" && (
+                      <p className="text-[10px] text-muted-foreground mt-1">This rule will apply to all {org.name} members.</p>
+                    )}
+                  </div>
+                )}
                 <div>
                   <label className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1 block">Repository</label>
                   <input
@@ -173,35 +235,86 @@ export default function RulesPage() {
         {rules.length === 0 ? (
           <div className="text-center py-16 border rounded-lg">
             <Shield className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" strokeWidth={1} />
-            <p className="text-sm text-foreground mb-1">No custom rules yet</p>
+            <p className="text-sm text-foreground mb-1">No review rules yet</p>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Rules tell the AI what to always check for in specific repos. Examples: "Flag missing error handling in API routes" or "Ensure all database queries use parameterized inputs."
+              Rules tell the AI what to always check for. Examples: "Flag missing error handling in API routes" or "Ensure all database queries use parameterized inputs."
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {Object.entries(groupedRules).map(([repo, repoRules]) => (
-              <div key={repo}>
-                <p className="text-[11px] font-mono text-muted-foreground mb-2">{repo}</p>
-                <div className="border rounded-lg divide-y">
-                  {repoRules.map((rule) => (
-                    <div key={rule.id} className={`px-4 py-3 flex items-start gap-3 ${!rule.enabled ? "opacity-50" : ""}`}>
-                      <button onClick={() => toggleRule(rule.id, rule.enabled)} className="shrink-0 mt-0.5 text-foreground">
-                        {rule.enabled ? (
-                          <ToggleRight className="h-4 w-4" strokeWidth={1.5} />
-                        ) : (
-                          <ToggleLeft className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
-                        )}
-                      </button>
-                      <p className="text-xs text-foreground leading-relaxed flex-1">{rule.rule_text}</p>
-                      <button onClick={() => deleteRule(rule.id)} className="shrink-0 text-muted-foreground hover:text-destructive transition-colors">
-                        <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
-                      </button>
-                    </div>
-                  ))}
+          <div className="space-y-8">
+            {/* Team rules section */}
+            {orgRules.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                    Team rules — {org?.name}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground/60">applies to all members</span>
                 </div>
+                {Object.entries(groupedOrgRules).map(([repo, repoRules]) => (
+                  <div key={`org-${repo}`} className="mb-4">
+                    <p className="text-[11px] font-mono text-muted-foreground mb-2">{repo}</p>
+                    <div className="border rounded-lg divide-y">
+                      {repoRules.map((rule) => (
+                        <div key={rule.id} className={`px-4 py-3 flex items-start gap-3 ${!rule.enabled ? "opacity-50" : ""}`}>
+                          {canManageRule(rule) && (
+                            <button onClick={() => toggleRule(rule.id, rule.enabled)} className="shrink-0 mt-0.5 text-foreground">
+                              {rule.enabled ? (
+                                <ToggleRight className="h-4 w-4" strokeWidth={1.5} />
+                              ) : (
+                                <ToggleLeft className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+                              )}
+                            </button>
+                          )}
+                          <p className="text-xs text-foreground leading-relaxed flex-1">{rule.rule_text}</p>
+                          {canManageRule(rule) && (
+                            <button onClick={() => deleteRule(rule.id)} className="shrink-0 text-muted-foreground hover:text-destructive transition-colors">
+                              <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+
+            {/* Personal rules section */}
+            {personalRules.length > 0 && (
+              <div>
+                {orgRules.length > 0 && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                      Your personal rules
+                    </span>
+                  </div>
+                )}
+                {Object.entries(groupedPersonalRules).map(([repo, repoRules]) => (
+                  <div key={`personal-${repo}`} className="mb-4">
+                    <p className="text-[11px] font-mono text-muted-foreground mb-2">{repo}</p>
+                    <div className="border rounded-lg divide-y">
+                      {repoRules.map((rule) => (
+                        <div key={rule.id} className={`px-4 py-3 flex items-start gap-3 ${!rule.enabled ? "opacity-50" : ""}`}>
+                          <button onClick={() => toggleRule(rule.id, rule.enabled)} className="shrink-0 mt-0.5 text-foreground">
+                            {rule.enabled ? (
+                              <ToggleRight className="h-4 w-4" strokeWidth={1.5} />
+                            ) : (
+                              <ToggleLeft className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+                            )}
+                          </button>
+                          <p className="text-xs text-foreground leading-relaxed flex-1">{rule.rule_text}</p>
+                          <button onClick={() => deleteRule(rule.id)} className="shrink-0 text-muted-foreground hover:text-destructive transition-colors">
+                            <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>
