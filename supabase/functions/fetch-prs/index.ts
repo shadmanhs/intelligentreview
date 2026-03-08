@@ -9,7 +9,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { github_token, filter } = await req.json();
+    const { github_token } = await req.json();
 
     if (!github_token) {
       return new Response(JSON.stringify({ error: "No GitHub token provided" }), {
@@ -18,58 +18,81 @@ serve(async (req) => {
       });
     }
 
-    // Fetch PRs where user is requested reviewer
-    const userRes = await fetch("https://api.github.com/user", {
-      headers: { Authorization: `Bearer ${github_token}`, Accept: "application/vnd.github+json" },
-    });
+    const ghHeaders = { Authorization: `Bearer ${github_token}`, Accept: "application/vnd.github+json" };
+
+    // Get user info
+    const userRes = await fetch("https://api.github.com/user", { headers: ghHeaders });
     if (!userRes.ok) throw new Error("Invalid GitHub token");
     const user = await userRes.json();
 
-    // Search for PRs needing review
-    const query = `is:pr is:open review-requested:${user.login}`;
-    const searchRes = await fetch(
-      `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=20`,
-      {
-        headers: { Authorization: `Bearer ${github_token}`, Accept: "application/vnd.github+json" },
-      }
+    // Run multiple searches in parallel:
+    // 1. PRs where user is requested reviewer
+    // 2. PRs where user is assigned
+    // 3. Open PRs in orgs user belongs to (authored by others)
+    const queries = [
+      `is:pr is:open review-requested:${user.login}`,
+      `is:pr is:open assignee:${user.login}`,
+      `is:pr is:open involves:${user.login} -author:${user.login}`,
+    ];
+
+    const searchResults = await Promise.all(
+      queries.map(async (query) => {
+        const res = await fetch(
+          `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=15`,
+          { headers: ghHeaders }
+        );
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.items || [];
+      })
     );
 
-    if (!searchRes.ok) {
-      const errText = await searchRes.text();
-      throw new Error(`GitHub search failed: ${searchRes.status} ${errText}`);
+    // Deduplicate by PR id
+    const seen = new Set<number>();
+    const allItems: any[] = [];
+    for (const items of searchResults) {
+      for (const item of items) {
+        if (!seen.has(item.id)) {
+          seen.add(item.id);
+          allItems.push(item);
+        }
+      }
     }
 
-    const searchData = await searchRes.json();
+    // Sort by updated_at descending
+    allItems.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
 
-    // Enrich with PR details
+    // Enrich top 15 with PR details
     const prs = await Promise.all(
-      searchData.items.slice(0, 10).map(async (item: any) => {
+      allItems.slice(0, 15).map(async (item: any) => {
         const prUrl = item.pull_request?.url;
         if (!prUrl) return null;
 
-        const prRes = await fetch(prUrl, {
-          headers: { Authorization: `Bearer ${github_token}`, Accept: "application/vnd.github+json" },
-        });
-        if (!prRes.ok) return null;
-        const pr = await prRes.json();
+        try {
+          const prRes = await fetch(prUrl, { headers: ghHeaders });
+          if (!prRes.ok) return null;
+          const pr = await prRes.json();
 
-        return {
-          id: pr.id,
-          number: pr.number,
-          title: pr.title,
-          author: pr.user?.login || "unknown",
-          repo: pr.base?.repo?.full_name || "",
-          status: pr.state,
-          draft: pr.draft || false,
-          additions: pr.additions || 0,
-          deletions: pr.deletions || 0,
-          changedFiles: pr.changed_files || 0,
-          createdAt: pr.created_at,
-          updatedAt: pr.updated_at,
-          labels: (pr.labels || []).map((l: any) => l.name),
-          description: pr.body || "",
-          htmlUrl: pr.html_url,
-        };
+          return {
+            id: pr.id,
+            number: pr.number,
+            title: pr.title,
+            author: pr.user?.login || "unknown",
+            repo: pr.base?.repo?.full_name || "",
+            status: pr.state,
+            draft: pr.draft || false,
+            additions: pr.additions || 0,
+            deletions: pr.deletions || 0,
+            changedFiles: pr.changed_files || 0,
+            createdAt: pr.created_at,
+            updatedAt: pr.updated_at,
+            labels: (pr.labels || []).map((l: any) => l.name),
+            description: pr.body || "",
+            htmlUrl: pr.html_url,
+          };
+        } catch {
+          return null;
+        }
       })
     );
 
