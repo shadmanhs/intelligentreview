@@ -52,7 +52,7 @@ export default function RulesPage() {
     }
 
     const { data } = await query;
-    setRules((data as CustomRule[]) || []);
+    setRules((data as unknown as CustomRule[]) || []);
     setLoading(false);
   };
 

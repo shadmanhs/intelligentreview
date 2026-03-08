@@ -35,8 +35,8 @@ export default function TeamInsightsPage() {
     if (!org) return;
     // Query by org_id — RLS now allows org members to see all org data
     const [sessionsRes, outcomesRes] = await Promise.all([
-      supabase.from("review_sessions").select("*").eq("org_id", org.id).order("created_at", { ascending: false }),
-      supabase.from("review_outcomes").select("*").eq("org_id", org.id).order("created_at", { ascending: false }),
+      supabase.from("review_sessions").select("*").eq("org_id" as any, org.id).order("created_at", { ascending: false }),
+      supabase.from("review_outcomes").select("*").eq("org_id" as any, org.id).order("created_at", { ascending: false }),
     ]);
 
     setSessions(sessionsRes.data || []);
