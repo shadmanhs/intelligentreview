@@ -55,11 +55,24 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background flex flex-col">
       <AppHeader showUser />
       <main className="flex-1 max-w-2xl mx-auto w-full px-6 py-10">
-        <div className="mb-8">
-          <h1 className="text-lg font-medium tracking-tight text-foreground mb-1">Your review queue</h1>
-          <p className="text-sm text-muted-foreground">
-            {loading ? "Loading..." : `${prs.length} PR${prs.length !== 1 ? "s" : ""} awaiting your review`}
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-lg font-medium tracking-tight text-foreground mb-1">Your review queue</h1>
+            <p className="text-sm text-muted-foreground">
+              {loading ? "Loading..." : `${prs.length} PR${prs.length !== 1 ? "s" : ""} awaiting your review`}
+            </p>
+          </div>
+          {!subscribed && !loading && (
+            <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-card shrink-0">
+              <Zap className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+              <div className="text-right">
+                <p className="text-xs font-medium text-foreground">
+                  {reviewsRemaining} of {1} review{reviewsRemaining !== 1 ? "" : ""} left
+                </p>
+                <p className="text-[10px] text-muted-foreground">Resets weekly</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {loading ? (
