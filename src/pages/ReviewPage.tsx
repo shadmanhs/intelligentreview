@@ -41,6 +41,9 @@ export default function ReviewPage() {
       setSummary(data.summary || "");
       setRiskLevel(data.riskLevel || "medium");
       setFiles(data.files || []);
+
+      // Record usage for free-tier tracking
+      await recordUsage(`${owner}/${repo}`, Number(number));
     } catch (err: any) {
       setError(err.message || "Failed to analyze PR");
       toast.error(err.message);
