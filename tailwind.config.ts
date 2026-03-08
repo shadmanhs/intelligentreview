@@ -70,6 +70,10 @@ export default {
           "line-added-text": "hsl(var(--code-line-added-text))",
           "line-removed-text": "hsl(var(--code-line-removed-text))",
         },
+        diff: {
+          added: "hsl(var(--code-line-added))",
+          removed: "hsl(var(--code-line-removed))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
