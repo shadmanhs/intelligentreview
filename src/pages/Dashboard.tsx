@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export default function Dashboard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { subscribed, checkSubscription } = useSubscription();
+  const { subscribed, checkSubscription, reviewsUsedThisWeek, reviewsRemaining } = useSubscription();
   const [prs, setPrs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("");
