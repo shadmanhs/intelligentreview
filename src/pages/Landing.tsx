@@ -1,4 +1,4 @@
-import { GitPullRequest, ArrowRight, Zap, Shield, Brain, Clock, CheckCircle } from "lucide-react";
+import { GitPullRequest, ArrowRight, Zap, Shield, Brain, Clock, CheckCircle, Check, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Landing() {
