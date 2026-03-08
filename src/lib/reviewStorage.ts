@@ -71,7 +71,7 @@ export async function saveReviewSession(params: {
   if (outcomes.length > 0) {
     const { error: outcomesError } = await supabase
       .from("review_outcomes")
-      .insert(outcomes);
+      .insert(outcomes as any);
     if (outcomesError) {
       console.error("Failed to save review outcomes:", outcomesError);
     }
