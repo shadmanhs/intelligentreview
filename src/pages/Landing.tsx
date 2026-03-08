@@ -210,8 +210,8 @@ export default function Landing() {
       <section className="border-t" id="pricing">
         <div className="max-w-4xl mx-auto px-6 py-20">
           <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">Pricing</p>
-          <h2 className="text-xl font-medium text-foreground mb-8">Simple, transparent pricing</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl">
+          <h2 className="text-xl font-medium text-foreground mb-8">Individual to team, one platform</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl">
             {/* Free */}
             <div className="border rounded-lg p-6">
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Free</p>
@@ -220,7 +220,7 @@ export default function Landing() {
                 <span className="text-xs text-muted-foreground">/month</span>
               </div>
               <div className="space-y-2.5 mb-6">
-                {["1 AI review per week", "Concern detection", "Full diff viewer", "Post to GitHub"].map((f) => (
+                {["1 review/week", "Concern detection", "Diff viewer", "Post to GitHub"].map((f) => (
                   <div key={f} className="flex items-start gap-2">
                     <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
                     <span className="text-sm text-foreground">{f}</span>
@@ -238,7 +238,7 @@ export default function Landing() {
             <div className="border-2 border-foreground rounded-lg p-6 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <span className="text-[10px] uppercase tracking-wider bg-foreground text-background px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                  <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> Recommended
+                  <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> Popular
                 </span>
               </div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Pro</p>
@@ -247,14 +247,7 @@ export default function Landing() {
                 <span className="text-xs text-muted-foreground">/month</span>
               </div>
               <div className="space-y-2.5 mb-6">
-                {[
-                  "Unlimited AI reviews",
-                  "Custom review rules per repo",
-                  "Review intelligence dashboard",
-                  "AI diff explanations",
-                  "Priority analysis speed",
-                  "Everything in Free",
-                ].map((f) => (
+                {["Unlimited reviews", "Custom rules", "Intelligence dashboard", "AI explanations", "Priority speed"].map((f) => (
                   <div key={f} className="flex items-start gap-2">
                     <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
                     <span className="text-sm text-foreground">{f}</span>
@@ -266,6 +259,33 @@ export default function Landing() {
                 className="w-full py-2.5 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
               >
                 Start free, upgrade anytime
+              </button>
+            </div>
+            {/* Team */}
+            <div className="border-2 border-foreground/20 rounded-lg p-6 relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="text-[10px] uppercase tracking-wider bg-secondary text-foreground px-3 py-1 rounded-full font-medium">
+                  For CTOs
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Team</p>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-2xl font-medium text-foreground">$25</span>
+                <span className="text-xs text-muted-foreground">/seat/mo</span>
+              </div>
+              <div className="space-y-2.5 mb-6">
+                {["Team workspace", "Shared rules", "Team analytics & ROI", "Member management", "Admin controls"].map((f) => (
+                  <div key={f} className="flex items-start gap-2">
+                    <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
+                    <span className="text-sm text-foreground">{f}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => navigate("/login")}
+                className="w-full py-2.5 rounded-md border-2 border-foreground text-sm font-medium text-foreground hover:bg-foreground hover:text-background transition-colors"
+              >
+                Start with your team
               </button>
             </div>
           </div>

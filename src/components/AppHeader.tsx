@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { GitPullRequest, Settings, LogOut, ChevronDown, BarChart3, Shield, BookOpen } from "lucide-react";
+import { GitPullRequest, Settings, LogOut, ChevronDown, BarChart3, BookOpen, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -10,6 +11,7 @@ interface AppHeaderProps {
 
 export function AppHeader({ showUser }: AppHeaderProps) {
   const { user, signOut } = useAuth();
+  const { org } = useOrganization();
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
@@ -47,7 +49,13 @@ export function AppHeader({ showUser }: AppHeaderProps) {
     { path: "/app", label: "Queue" },
     { path: "/app/insights", label: "Insights", icon: BarChart3 },
     { path: "/app/rules", label: "Rules", icon: BookOpen },
+    { path: "/app/team", label: "Team", icon: Users },
   ];
+
+  // Add team insights if org exists
+  if (org) {
+    navLinks.push({ path: "/app/team/insights", label: "Team Analytics", icon: BarChart3 });
+  }
 
   return (
     <header className="h-12 border-b bg-card/50 flex items-center px-5 justify-between shrink-0">
@@ -58,6 +66,9 @@ export function AppHeader({ showUser }: AppHeaderProps) {
         >
           <GitPullRequest className="h-4 w-4 text-foreground" strokeWidth={1.5} />
           <span className="font-medium text-foreground text-sm tracking-tight">ReviewLens</span>
+          {org && (
+            <span className="text-[10px] text-muted-foreground border rounded px-1.5 py-0.5 ml-1">{org.name}</span>
+          )}
         </button>
 
         {showUser && user && (
@@ -100,10 +111,10 @@ export function AppHeader({ showUser }: AppHeaderProps) {
 
           {open && (
             <div className="absolute right-0 top-full mt-1 w-52 border rounded-lg bg-card shadow-lg py-1 z-50 animate-fade-in">
-              {/* Identity */}
               <div className="px-3 py-2 border-b">
                 <p className="text-xs font-medium text-foreground truncate">{profile?.display_name || "—"}</p>
                 <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+                {org && <p className="text-[10px] text-muted-foreground/60 truncate mt-0.5">{org.name}</p>}
               </div>
 
               {/* Mobile nav */}
