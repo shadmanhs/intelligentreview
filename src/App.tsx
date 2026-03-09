@@ -9,6 +9,7 @@ import { OrganizationProvider } from "@/hooks/useOrganization";
 import { PermissionsProvider } from "@/hooks/usePermissions";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
+import { BugReportButton } from "@/components/BugReportButton";
 import LoginPage from "./pages/LoginPage";
 import ConnectGitHub from "./pages/ConnectGitHub";
 import Dashboard from "./pages/Dashboard";
@@ -95,6 +96,7 @@ const App = () => (
                 />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <BugReportButton />
             </BrowserRouter>
           </TooltipProvider>
           </PermissionsProvider>

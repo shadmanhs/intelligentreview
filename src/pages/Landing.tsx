@@ -5,6 +5,7 @@ import {
   CheckCircle, MessageSquare, TrendingUp, Lock, FileCode
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import githubReviewScreenshot from "@/assets/github-review-comment.png";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -66,11 +67,11 @@ export default function Landing() {
             Used by engineering teams at 40+ companies
           </div>
           <h1 className="text-3xl sm:text-5xl font-medium tracking-tight text-foreground leading-[1.1] mb-5">
-            AI reviews every PR<br />
-            <span className="text-muted-foreground">before your team wakes up.</span>
+            Your rules. Every PR.<br />
+            <span className="text-muted-foreground">Reviewed before standup.</span>
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-8 max-w-xl">
-            One webhook. Every PR reviewed by AI before your team even looks at it.
+            Add a webhook. Define your team's rules. Every PR gets an AI review that enforces <em>your</em> standards — not generic suggestions.
           </p>
           <div className="flex items-center gap-3 flex-wrap mb-4">
             <button
@@ -105,10 +106,42 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Product Demo — Show, don't tell */}
+      {/* GitHub Review Screenshot — Show, don't tell */}
       <section className="border-b" id="demo">
         <div className="max-w-5xl mx-auto px-6 py-20">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">See it in action</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center mb-16">
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">What your team gets</p>
+              <h2 className="text-xl sm:text-2xl font-medium text-foreground mb-4 max-w-lg">
+                This comment appears on every PR. Automatically.
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-5 max-w-md">
+                Add a webhook once. Every pull request gets an AI review comment — with your team's custom rules enforced. No manual trigger, no dashboard to check.
+              </p>
+              <div className="space-y-2.5">
+                {[
+                  "Your custom rules enforced on every PR",
+                  "Security issues flagged before human review",
+                  "Engineers triage in 2 min instead of 30",
+                ].map((f) => (
+                  <div key={f} className="flex items-start gap-2">
+                    <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
+                    <span className="text-xs text-foreground">{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-lg overflow-hidden border-2 border-foreground/10 shadow-lg">
+              <img
+                src={githubReviewScreenshot}
+                alt="ReviewLens auto-generated review comment on a GitHub pull request showing critical security findings"
+                className="w-full h-auto"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">See the full flow</p>
           <h2 className="text-xl sm:text-2xl font-medium text-foreground mb-10 max-w-lg">
             From PR opened to review posted — under 2 minutes.
           </h2>
@@ -448,7 +481,7 @@ export default function Landing() {
             <div className="border-2 border-foreground rounded-lg p-6 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <span className="text-[10px] uppercase tracking-wider bg-foreground text-background px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                  <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> Best for teams
+                  <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> 14-day free trial
                 </span>
               </div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Team</p>
