@@ -347,6 +347,29 @@ export default function TeamInsightsPage() {
                 </div>
               </div>
             )}
+
+            {/* Weekly Digest */}
+            <div className="border rounded-lg">
+              <div className="px-4 py-3 border-b flex items-center gap-2">
+                <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+                <span className="text-xs font-medium text-foreground">Weekly Digest</span>
+              </div>
+              <div className="divide-y">
+                {weeklyDigest.map((week, i) => (
+                  <div key={i} className="px-4 py-3 flex items-center gap-6">
+                    <span className="text-[11px] text-muted-foreground w-36 shrink-0">{week.label}</span>
+                    <span className="text-xs text-foreground">{week.reviews} reviews</span>
+                    <span className="text-xs text-success">{week.timeSaved > 60 ? `${Math.round(week.timeSaved / 60)}h` : `${week.timeSaved}m`} saved</span>
+                    {week.highRisk > 0 && (
+                      <span className="text-xs text-destructive">{week.highRisk} high risk</span>
+                    )}
+                    {week.reviews === 0 && (
+                      <span className="text-[10px] text-muted-foreground/50">No activity</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </>
         )}
       </main>
