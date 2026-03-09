@@ -32,6 +32,7 @@ const App = () => (
     <AuthProvider>
       <SubscriptionProvider>
         <OrganizationProvider>
+          <PermissionsProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
