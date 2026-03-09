@@ -177,6 +177,13 @@ export default function InsightsPage() {
               <p className="text-xs text-muted-foreground">Patterns and insights from your code reviews</p>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/app/learning")}
+              className="text-[11px] px-3 py-1.5 rounded-md border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors flex items-center gap-1.5"
+            >
+              <Brain className="h-3 w-3" strokeWidth={1.5} /> Learning Intelligence
+            </button>
           <div className="flex items-center gap-1 border rounded-md overflow-hidden">
             {(["7d", "30d", "all"] as const).map((range) => (
               <button
