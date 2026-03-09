@@ -70,9 +70,7 @@ export default function Landing() {
             <span className="text-muted-foreground">before your team wakes up.</span>
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-8 max-w-xl">
-            Add a webhook. Every PR gets an AI review comment on GitHub automatically —
-            security issues, missing error handling, and your team's custom rules enforced.
-            Engineers triage in 2 minutes instead of 30.
+            One webhook. Every PR reviewed by AI before your team even looks at it.
           </p>
           <div className="flex items-center gap-3 flex-wrap mb-4">
             <button
