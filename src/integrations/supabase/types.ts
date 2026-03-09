@@ -14,35 +14,165 @@ export type Database = {
   }
   public: {
     Tables: {
+      comment_edits: {
+        Row: {
+          concern_file: string | null
+          concern_severity: string
+          concern_title: string
+          created_at: string
+          edited_comment: string
+          id: string
+          org_id: string | null
+          original_comment: string
+          repo: string
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          concern_file?: string | null
+          concern_severity: string
+          concern_title: string
+          created_at?: string
+          edited_comment: string
+          id?: string
+          org_id?: string | null
+          original_comment: string
+          repo: string
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          concern_file?: string | null
+          concern_severity?: string
+          concern_title?: string
+          created_at?: string
+          edited_comment?: string
+          id?: string
+          org_id?: string | null
+          original_comment?: string
+          repo?: string
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_edits_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_edits_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "review_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      concern_patterns: {
+        Row: {
+          concern_severity: string
+          concern_title: string
+          created_at: string
+          id: string
+          last_seen_at: string
+          org_id: string | null
+          pattern_hash: string
+          repo: string
+          times_approved: number
+          times_dismissed: number
+          times_edited: number
+          user_id: string
+        }
+        Insert: {
+          concern_severity: string
+          concern_title: string
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          org_id?: string | null
+          pattern_hash: string
+          repo: string
+          times_approved?: number
+          times_dismissed?: number
+          times_edited?: number
+          user_id: string
+        }
+        Update: {
+          concern_severity?: string
+          concern_title?: string
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          org_id?: string | null
+          pattern_hash?: string
+          repo?: string
+          times_approved?: number
+          times_dismissed?: number
+          times_edited?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concern_patterns_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_rules: {
         Row: {
+          conditions: Json | null
           created_at: string
           enabled: boolean
           id: string
+          org_id: string | null
           repo: string
           rule_text: string
+          rule_type: string
+          severity: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          conditions?: Json | null
           created_at?: string
           enabled?: boolean
           id?: string
+          org_id?: string | null
           repo: string
           rule_text: string
+          rule_type?: string
+          severity?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          conditions?: Json | null
           created_at?: string
           enabled?: boolean
           id?: string
+          org_id?: string | null
           repo?: string
           rule_text?: string
+          rule_type?: string
+          severity?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "custom_rules_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       github_connections: {
         Row: {
