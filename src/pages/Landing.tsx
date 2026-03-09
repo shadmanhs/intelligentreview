@@ -185,13 +185,8 @@ export default function Landing() {
                 ))}
               </div>
             </div>
-            <div className="rounded-lg overflow-hidden border-2 border-foreground/10 shadow-lg">
-              <img
-                src={githubReviewScreenshot}
-                alt="ReviewLens auto-generated review comment on a GitHub pull request showing critical security findings"
-                className="w-full h-auto"
-                loading="lazy"
-              />
+            <div>
+              <ReviewCardMockup />
             </div>
           </div>
 

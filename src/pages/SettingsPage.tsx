@@ -6,6 +6,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useOrganization } from "@/hooks/useOrganization";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { RepoAuthorization } from "@/components/settings/RepoAuthorization";
 import { toast } from "sonner";
 import {
   ArrowLeft,
