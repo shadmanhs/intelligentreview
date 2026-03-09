@@ -228,8 +228,10 @@ export default function RulesPage() {
   };
 
   const deleteRule = async (id: string) => {
+    if (!canDeleteRules) { toast.error("You don't have permission to delete rules"); return; }
     await supabase.from("custom_rules").delete().eq("id", id);
     setRules((prev) => prev.filter((r) => r.id !== id));
+    await logAudit({ orgId: org?.id, action: "rule.deleted", entityType: "rule", entityId: id });
     toast.success("Rule deleted");
   };
 
