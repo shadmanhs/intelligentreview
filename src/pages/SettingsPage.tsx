@@ -56,13 +56,18 @@ export default function SettingsPage() {
   }, [user]);
 
   const loadData = async () => {
-    const [profileRes, ghRes] = await Promise.all([
-      supabase.from("profiles").select("display_name, email, avatar_url").eq("user_id", user!.id).maybeSingle(),
-      supabase.from("github_connections").select("github_username, created_at, updated_at").eq("user_id", user!.id).maybeSingle(),
-    ]);
-    setProfile(profileRes.data);
-    setGhConnection(ghRes.data);
-    setLoading(false);
+    try {
+      const [profileRes, ghRes] = await Promise.all([
+        supabase.from("profiles").select("display_name, email, avatar_url").eq("user_id", user!.id).maybeSingle(),
+        supabase.from("github_connections").select("github_username, created_at, updated_at").eq("user_id", user!.id).maybeSingle(),
+      ]);
+      setProfile(profileRes.data);
+      setGhConnection(ghRes.data);
+    } catch (err) {
+      console.error("Failed to load settings data:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpdateToken = async () => {

@@ -106,37 +106,40 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const [rolesRes, assignmentsRes] = await Promise.all([
-      supabase.from("custom_roles" as any).select("*").eq("org_id", org.id),
-      supabase.from("member_role_assignments" as any).select("*").eq("org_id", org.id),
-    ]);
+    try {
+      const [rolesRes, assignmentsRes] = await Promise.all([
+        supabase.from("custom_roles" as any).select("*").eq("org_id", org.id),
+        supabase.from("member_role_assignments" as any).select("*").eq("org_id", org.id),
+      ]);
 
-    const rolesData = (rolesRes.data || []) as unknown as CustomRole[];
-    const assignmentsData = (assignmentsRes.data || []) as unknown as RoleAssignment[];
+      const rolesData = (rolesRes.data || []) as unknown as CustomRole[];
+      const assignmentsData = (assignmentsRes.data || []) as unknown as RoleAssignment[];
 
-    setRoles(rolesData);
-    setAssignments(assignmentsData);
+      setRoles(rolesData);
+      setAssignments(assignmentsData);
 
-    // Calculate my permissions from assigned roles
-    if (isAdmin) {
-      // Admins/owners have all permissions
-      const allPerms: Record<string, boolean> = {};
-      Object.keys(ALL_PERMISSIONS).forEach(p => { allPerms[p] = true; });
-      setMyPermissions(allPerms);
-    } else {
-      const myAssignments = assignmentsData.filter(a => a.user_id === user.id);
-      const myRoleIds = myAssignments.map(a => a.role_id);
-      const myRoles = rolesData.filter(r => myRoleIds.includes(r.id));
-      const perms: Record<string, boolean> = {};
-      myRoles.forEach(role => {
-        Object.entries(role.permissions).forEach(([key, val]) => {
-          if (val) perms[key] = true;
+      // Calculate my permissions from assigned roles
+      if (isAdmin) {
+        const allPerms: Record<string, boolean> = {};
+        Object.keys(ALL_PERMISSIONS).forEach(p => { allPerms[p] = true; });
+        setMyPermissions(allPerms);
+      } else {
+        const myAssignments = assignmentsData.filter(a => a.user_id === user.id);
+        const myRoleIds = myAssignments.map(a => a.role_id);
+        const myRoles = rolesData.filter(r => myRoleIds.includes(r.id));
+        const perms: Record<string, boolean> = {};
+        myRoles.forEach(role => {
+          Object.entries(role.permissions).forEach(([key, val]) => {
+            if (val) perms[key] = true;
+          });
         });
-      });
-      setMyPermissions(perms);
+        setMyPermissions(perms);
+      }
+    } catch (err) {
+      console.error("Failed to load permissions:", err);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }, [user, org, isAdmin]);
 
   useEffect(() => { loadData(); }, [loadData]);
