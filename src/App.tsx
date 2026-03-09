@@ -75,6 +75,14 @@ const App = () => (
                   element={<ProtectedRoute><LearningInsightsPage /></ProtectedRoute>}
                 />
                 <Route
+                  path="/app/roles"
+                  element={<ProtectedRoute><RolesPage /></ProtectedRoute>}
+                />
+                <Route
+                  path="/app/self-hosted"
+                  element={<ProtectedRoute><SelfHostedPage /></ProtectedRoute>}
+                />
+                <Route
                   path="/settings"
                   element={<ProtectedRoute><SettingsPage /></ProtectedRoute>}
                 />
@@ -82,6 +90,7 @@ const App = () => (
               </Routes>
             </BrowserRouter>
           </TooltipProvider>
+          </PermissionsProvider>
         </OrganizationProvider>
       </SubscriptionProvider>
     </AuthProvider>
