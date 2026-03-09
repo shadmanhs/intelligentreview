@@ -494,7 +494,7 @@ export default function Landing() {
               </div>
               <p className="text-[10px] text-muted-foreground mb-4">For individual engineers</p>
               <div className="space-y-2.5 mb-6">
-                {["1 review/week", "Concern detection", "Diff viewer", "Post to GitHub"].map((f) => (
+                {["3 reviews/week", "Concern detection", "Diff viewer", "Post to GitHub"].map((f) => (
                   <div key={f} className="flex items-start gap-2">
                     <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
                     <span className="text-xs text-foreground">{f}</span>
