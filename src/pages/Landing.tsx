@@ -481,7 +481,7 @@ export default function Landing() {
             <div className="border-2 border-foreground rounded-lg p-6 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <span className="text-[10px] uppercase tracking-wider bg-foreground text-background px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                  <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> Best for teams
+                  <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> 14-day free trial
                 </span>
               </div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Team</p>

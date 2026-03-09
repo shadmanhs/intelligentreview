@@ -96,6 +96,7 @@ const App = () => (
                 />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <BugReportButton />
             </BrowserRouter>
           </TooltipProvider>
           </PermissionsProvider>
