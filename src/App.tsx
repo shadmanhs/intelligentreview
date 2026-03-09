@@ -105,6 +105,7 @@ const App = () => (
         </OrganizationProvider>
       </SubscriptionProvider>
     </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
