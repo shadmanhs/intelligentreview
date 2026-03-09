@@ -184,6 +184,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
       assigned_by: user.id,
     } as any);
     if (error) throw error;
+    await logAudit({ orgId: org.id, action: "role.assigned", entityType: "role_assignment", entityId: roleId, details: { userId } });
     await loadData();
   }, [org, user, loadData]);
 
