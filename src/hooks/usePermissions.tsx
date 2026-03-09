@@ -191,6 +191,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
   const unassignRole = useCallback(async (assignmentId: string) => {
     const { error } = await supabase.from("member_role_assignments" as any).delete().eq("id", assignmentId);
     if (error) throw error;
+    await logAudit({ action: "role.unassigned", entityType: "role_assignment", entityId: assignmentId });
     await loadData();
   }, [loadData]);
 
