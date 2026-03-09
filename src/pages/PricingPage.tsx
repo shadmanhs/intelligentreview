@@ -53,11 +53,26 @@ export default function PricingPage() {
         <div className="text-center mb-12">
           <p className="text-xs text-muted-foreground uppercase tracking-widest mb-3">Pricing</p>
           <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-foreground mb-3">
-            Built for individuals. Priced for teams.
+            One tool. Every PR reviewed before standup.
           </h1>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Start free. Upgrade to Pro for unlimited reviews. Scale with your team.
+            Custom rules + auto-webhook = reviews that match your standards, not generic AI suggestions. Start with a 14-day free trial.
           </p>
+        </div>
+
+        {/* What you're actually paying for */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-12">
+          {[
+            { label: "Your rules enforced", desc: "Not generic — your team's standards on every PR" },
+            { label: "Zero human effort", desc: "Webhook fires, AI reviews, comment posted. Done." },
+            { label: "ROI you can prove", desc: "Dashboard shows hours saved per engineer per week" },
+          ].map((v) => (
+            <div key={v.label} className="border rounded-lg p-4 text-center">
+              <Check className="h-4 w-4 text-success mx-auto mb-2" strokeWidth={2} />
+              <p className="text-xs font-medium text-foreground mb-0.5">{v.label}</p>
+              <p className="text-[10px] text-muted-foreground">{v.desc}</p>
+            </div>
+          ))}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
@@ -96,12 +111,7 @@ export default function PricingPage() {
           </div>
 
           {/* Pro tier */}
-          <div className="border-2 border-foreground rounded-lg p-6 relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="text-[10px] uppercase tracking-wider bg-foreground text-background px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> Popular
-              </span>
-            </div>
+          <div className="border rounded-lg p-6">
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Pro</p>
             <div className="flex items-baseline gap-1 mb-4">
               <span className="text-2xl font-medium text-foreground">$10</span>
@@ -111,7 +121,7 @@ export default function PricingPage() {
               {[
                 "Unlimited AI reviews",
                 "Custom review rules",
-                "Review intelligence",
+                "Auto-webhook reviews",
                 "AI diff explanations",
                 "Priority speed",
                 "Everything in Free",
@@ -139,26 +149,27 @@ export default function PricingPage() {
             )}
           </div>
 
-          {/* Team tier */}
-          <div className="border-2 border-foreground/20 rounded-lg p-6 relative">
+          {/* Team tier — THE ONE WE WANT */}
+          <div className="border-2 border-foreground rounded-lg p-6 relative">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span className="text-[10px] uppercase tracking-wider bg-secondary text-foreground px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                <Users className="h-2.5 w-2.5" strokeWidth={2} /> Teams
+              <span className="text-[10px] uppercase tracking-wider bg-foreground text-background px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                <Sparkles className="h-2.5 w-2.5" strokeWidth={2} /> 14-day free trial
               </span>
             </div>
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Team</p>
-            <div className="flex items-baseline gap-1 mb-4">
+            <div className="flex items-baseline gap-1 mb-1">
               <span className="text-2xl font-medium text-foreground">$25</span>
               <span className="text-xs text-muted-foreground">/seat/month</span>
             </div>
+            <p className="text-[10px] text-muted-foreground mb-4">No credit card for trial</p>
             <div className="space-y-3 mb-6">
               {[
+                "Everything in Pro",
                 "Team workspace",
                 "Shared review rules",
+                "Auto-webhook for every PR",
                 "Team analytics & ROI",
-                "Member management",
                 "Admin controls",
-                "Everything in Pro",
               ].map((f) => (
                 <div key={f} className="flex items-start gap-2">
                   <Check className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" strokeWidth={2} />
@@ -168,10 +179,39 @@ export default function PricingPage() {
             </div>
             <button
               onClick={() => user ? navigate("/app/team") : navigate("/login")}
-              className="w-full py-2.5 rounded-md border-2 border-foreground text-sm font-medium text-foreground hover:bg-foreground hover:text-background transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-md bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2"
             >
-              Start with your team <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
+              Start 14-day free trial <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
             </button>
+          </div>
+        </div>
+
+        {/* Differentiator */}
+        <div className="mt-12 max-w-2xl mx-auto">
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4 text-center">Why not just use GitHub Copilot reviews?</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="border rounded-lg p-5">
+              <p className="text-xs font-medium text-muted-foreground mb-3">GitHub Copilot</p>
+              <div className="space-y-2">
+                {["Generic AI suggestions", "No team rules", "No analytics or ROI", "No learning from feedback"].map((f) => (
+                  <div key={f} className="flex items-start gap-2">
+                    <span className="text-[10px] text-muted-foreground mt-0.5">✗</span>
+                    <span className="text-xs text-muted-foreground">{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="border-2 border-foreground rounded-lg p-5">
+              <p className="text-xs font-medium text-foreground mb-3">ReviewLens</p>
+              <div className="space-y-2">
+                {["Your custom rules enforced", "Shared team standards", "ROI dashboard for CTOs", "Learns from approve/dismiss"].map((f) => (
+                  <div key={f} className="flex items-start gap-2">
+                    <Check className="h-3 w-3 text-success shrink-0 mt-0.5" strokeWidth={2} />
+                    <span className="text-xs text-foreground">{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 

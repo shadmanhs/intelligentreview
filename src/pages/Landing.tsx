@@ -67,11 +67,11 @@ export default function Landing() {
             Used by engineering teams at 40+ companies
           </div>
           <h1 className="text-3xl sm:text-5xl font-medium tracking-tight text-foreground leading-[1.1] mb-5">
-            AI reviews every PR<br />
-            <span className="text-muted-foreground">before your team wakes up.</span>
+            Your rules. Every PR.<br />
+            <span className="text-muted-foreground">Reviewed before standup.</span>
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-8 max-w-xl">
-            One webhook. Every PR reviewed by AI before your team even looks at it.
+            Add a webhook. Define your team's rules. Every PR gets an AI review that enforces <em>your</em> standards — not generic suggestions.
           </p>
           <div className="flex items-center gap-3 flex-wrap mb-4">
             <button
