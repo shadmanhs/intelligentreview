@@ -85,7 +85,7 @@ export default function PricingPage() {
             </div>
             <div className="space-y-3 mb-6">
               {[
-                "1 AI review per week",
+                "3 AI reviews per week",
                 "Concern detection",
                 "Full diff viewer",
                 "Post to GitHub",
