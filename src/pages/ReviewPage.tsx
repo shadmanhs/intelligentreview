@@ -8,6 +8,7 @@ import { PRContextPanel } from "@/components/review/PRContextPanel";
 import { getGitHubToken, analyzePR, postReview } from "@/lib/github";
 import { saveReviewSession } from "@/lib/reviewStorage";
 import { useSubscription } from "@/hooks/useSubscription";
+import { usePermissions } from "@/hooks/usePermissions";
 import { AIConcern } from "@/types/review";
 import { ArrowLeft, ExternalLink, AlertTriangle, Code, Send, Loader2, Keyboard } from "lucide-react";
 import { toast } from "sonner";
