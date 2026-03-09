@@ -118,6 +118,7 @@ export default function ReviewPage() {
   const totalComments = stats.approved + inlineComments.length;
 
   const handlePost = async () => {
+    if (!canPost) { toast.error("You don't have permission to post reviews"); return; }
     try {
       const token = await getGitHubToken();
       if (!token) return;

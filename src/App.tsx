@@ -85,6 +85,11 @@ const App = () => (
                   element={<ProtectedRoute><SelfHostedPage /></ProtectedRoute>}
                 />
                 <Route
+                  path="/app/audit-log"
+                  element={<ProtectedRoute><AuditLogPage /></ProtectedRoute>}
+                />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route
                   path="/settings"
                   element={<ProtectedRoute><SettingsPage /></ProtectedRoute>}
                 />
