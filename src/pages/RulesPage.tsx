@@ -149,6 +149,7 @@ export default function RulesPage() {
   };
 
   const handleAdd = async () => {
+    if (!canCreateRules) { toast.error("You don't have permission to create rules"); return; }
     if (addMode === "prompt" && !newRule.trim()) return;
     if (addMode === "structured" && newConditions.every(c => !c.value.trim())) return;
 
