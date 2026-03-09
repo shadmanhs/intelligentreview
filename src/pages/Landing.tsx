@@ -5,7 +5,7 @@ import {
   CheckCircle, MessageSquare, TrendingUp, Lock, FileCode
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import githubReviewScreenshot from "@/assets/github-review-comment.png";
+import { ReviewCardMockup } from "@/components/landing/ReviewCardMockup";
 
 export default function Landing() {
   const navigate = useNavigate();
