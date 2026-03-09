@@ -113,6 +113,9 @@ export default function RulesPage() {
   const { user } = useAuth();
   const { subscribed } = useSubscription();
   const { org, isAdmin } = useOrganization();
+  const { hasPermission } = usePermissions();
+  const canCreateRules = hasPermission("rules.create");
+  const canDeleteRules = hasPermission("rules.delete");
   const [rules, setRules] = useState<CustomRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
