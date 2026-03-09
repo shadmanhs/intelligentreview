@@ -4,6 +4,8 @@ import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useOrganization } from "@/hooks/useOrganization";
+import { usePermissions } from "@/hooks/usePermissions";
+import { logAudit } from "@/lib/auditLog";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Plus, Trash2, Shield, Loader2, ToggleLeft, ToggleRight,
