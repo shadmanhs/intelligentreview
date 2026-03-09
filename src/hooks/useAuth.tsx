@@ -23,23 +23,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session);
-      setLoading(false);
-
-      // Auto-accept pending invites on sign in/up
-      if ((event === "SIGNED_IN" || event === "USER_UPDATED") && session) {
-        try {
-          await supabase.functions.invoke("accept-invite");
-        } catch {
-          // Silent — non-critical
-        }
-      }
-    });
-
+    // Restore session from storage first
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setLoading(false);
+
+      // Fire-and-forget — never await inside onAuthStateChange
+      if ((event === "SIGNED_IN" || event === "USER_UPDATED") && session) {
+        supabase.functions.invoke("accept-invite").catch(() => {});
+      }
     });
 
     return () => subscription.unsubscribe();

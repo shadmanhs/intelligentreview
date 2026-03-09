@@ -72,6 +72,11 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
     try {
       const { data, error } = await supabase.functions.invoke("check-subscription");
       if (error) throw error;
@@ -81,6 +86,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       console.error("Failed to check subscription:", err);
       setSubscribed(false);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   }, [session]);
