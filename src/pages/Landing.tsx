@@ -584,9 +584,9 @@ export default function Landing() {
             <button onClick={() => navigate("/pricing")} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">
               Pricing
             </button>
-            <a href="mailto:team@reviewlens.dev" className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => navigate("/contact")} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">
               Contact
-            </a>
+            </button>
             <span className="text-[10px] text-muted-foreground">Built for engineering teams.</span>
           </div>
         </div>

@@ -8,6 +8,7 @@ import { PRContextPanel } from "@/components/review/PRContextPanel";
 import { getGitHubToken, analyzePR, postReview } from "@/lib/github";
 import { saveReviewSession } from "@/lib/reviewStorage";
 import { useSubscription } from "@/hooks/useSubscription";
+import { usePermissions } from "@/hooks/usePermissions";
 import { AIConcern } from "@/types/review";
 import { ArrowLeft, ExternalLink, AlertTriangle, Code, Send, Loader2, Keyboard } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +27,7 @@ export default function ReviewPage() {
   const { owner, repo, number } = useParams();
   const navigate = useNavigate();
   const { recordUsage } = useSubscription();
+  const { hasPermission } = usePermissions();
   const [tab, setTab] = useState<Tab>("concerns");
   const [concerns, setConcerns] = useState<AIConcern[]>([]);
   const [summary, setSummary] = useState("");
@@ -89,8 +91,17 @@ export default function ReviewPage() {
     }
   };
 
-  const approve = (cid: string) => setConcerns((prev) => prev.map((c) => c.id === cid ? { ...c, status: "approved" as const } : c));
-  const dismiss = (cid: string) => setConcerns((prev) => prev.map((c) => c.id === cid ? { ...c, status: "dismissed" as const } : c));
+  const canApprove = hasPermission("review.approve");
+  const canPost = hasPermission("review.post_comments");
+
+  const approve = (cid: string) => {
+    if (!canApprove) { toast.error("You don't have permission to approve concerns"); return; }
+    setConcerns((prev) => prev.map((c) => c.id === cid ? { ...c, status: "approved" as const } : c));
+  };
+  const dismiss = (cid: string) => {
+    if (!canApprove) { toast.error("You don't have permission to dismiss concerns"); return; }
+    setConcerns((prev) => prev.map((c) => c.id === cid ? { ...c, status: "dismissed" as const } : c));
+  };
   const edit = (cid: string, text: string) => setConcerns((prev) => prev.map((c) => c.id === cid ? { ...c, draftComment: text, status: "edited" as const } : c));
 
   const handleInlineComment = useCallback((comment: InlineComment) => {
@@ -107,6 +118,7 @@ export default function ReviewPage() {
   const totalComments = stats.approved + inlineComments.length;
 
   const handlePost = async () => {
+    if (!canPost) { toast.error("You don't have permission to post reviews"); return; }
     try {
       const token = await getGitHubToken();
       if (!token) return;

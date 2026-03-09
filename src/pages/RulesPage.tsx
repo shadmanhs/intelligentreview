@@ -4,6 +4,8 @@ import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useOrganization } from "@/hooks/useOrganization";
+import { usePermissions } from "@/hooks/usePermissions";
+import { logAudit } from "@/lib/auditLog";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Plus, Trash2, Shield, Loader2, ToggleLeft, ToggleRight,
@@ -111,6 +113,9 @@ export default function RulesPage() {
   const { user } = useAuth();
   const { subscribed } = useSubscription();
   const { org, isAdmin } = useOrganization();
+  const { hasPermission } = usePermissions();
+  const canCreateRules = hasPermission("rules.create");
+  const canDeleteRules = hasPermission("rules.delete");
   const [rules, setRules] = useState<CustomRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -144,6 +149,7 @@ export default function RulesPage() {
   };
 
   const handleAdd = async () => {
+    if (!canCreateRules) { toast.error("You don't have permission to create rules"); return; }
     if (addMode === "prompt" && !newRule.trim()) return;
     if (addMode === "structured" && newConditions.every(c => !c.value.trim())) return;
 
@@ -222,8 +228,10 @@ export default function RulesPage() {
   };
 
   const deleteRule = async (id: string) => {
+    if (!canDeleteRules) { toast.error("You don't have permission to delete rules"); return; }
     await supabase.from("custom_rules").delete().eq("id", id);
     setRules((prev) => prev.filter((r) => r.id !== id));
+    await logAudit({ orgId: org?.id, action: "rule.deleted", entityType: "rule", entityId: id });
     toast.success("Rule deleted");
   };
 

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
+import { logAudit } from "@/lib/auditLog";
 
 // All available permissions in the system
 export const ALL_PERMISSIONS = {
@@ -147,13 +148,14 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
 
   const createRole = useCallback(async (name: string, description: string, permissions: Record<string, boolean>) => {
     if (!org || !user) return;
-    const { error } = await supabase.from("custom_roles" as any).insert({
+    const { data, error } = await supabase.from("custom_roles" as any).insert({
       org_id: org.id,
       name,
       description,
       permissions,
-    } as any);
+    } as any).select().single();
     if (error) throw error;
+    await logAudit({ orgId: org.id, action: "role.created", entityType: "role", entityId: (data as any)?.id, details: { name } });
     await loadData();
   }, [org, user, loadData]);
 
@@ -161,6 +163,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     if (!org) return;
     const { error } = await supabase.from("custom_roles" as any).update(updates as any).eq("id", roleId);
     if (error) throw error;
+    await logAudit({ orgId: org.id, action: "role.updated", entityType: "role", entityId: roleId, details: updates });
     await loadData();
   }, [org, loadData]);
 
@@ -168,6 +171,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     if (!org) return;
     const { error } = await supabase.from("custom_roles" as any).delete().eq("id", roleId);
     if (error) throw error;
+    await logAudit({ orgId: org.id, action: "role.deleted", entityType: "role", entityId: roleId });
     await loadData();
   }, [org, loadData]);
 
@@ -180,12 +184,14 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
       assigned_by: user.id,
     } as any);
     if (error) throw error;
+    await logAudit({ orgId: org.id, action: "role.assigned", entityType: "role_assignment", entityId: roleId, details: { userId } });
     await loadData();
   }, [org, user, loadData]);
 
   const unassignRole = useCallback(async (assignmentId: string) => {
     const { error } = await supabase.from("member_role_assignments" as any).delete().eq("id", assignmentId);
     if (error) throw error;
+    await logAudit({ action: "role.unassigned", entityType: "role_assignment", entityId: assignmentId });
     await loadData();
   }, [loadData]);
 

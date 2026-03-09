@@ -23,6 +23,8 @@ import TeamInsightsPage from "./pages/TeamInsightsPage";
 import LearningInsightsPage from "./pages/LearningInsightsPage";
 import RolesPage from "./pages/RolesPage";
 import SelfHostedPage from "./pages/SelfHostedPage";
+import ContactPage from "./pages/ContactPage";
+import AuditLogPage from "./pages/AuditLogPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +84,11 @@ const App = () => (
                   path="/app/self-hosted"
                   element={<ProtectedRoute><SelfHostedPage /></ProtectedRoute>}
                 />
+                <Route
+                  path="/app/audit-log"
+                  element={<ProtectedRoute><AuditLogPage /></ProtectedRoute>}
+                />
+                <Route path="/contact" element={<ContactPage />} />
                 <Route
                   path="/settings"
                   element={<ProtectedRoute><SettingsPage /></ProtectedRoute>}
