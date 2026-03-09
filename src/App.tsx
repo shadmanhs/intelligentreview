@@ -19,6 +19,7 @@ import SecurityPage from "./pages/SecurityPage";
 import RulesPage from "./pages/RulesPage";
 import TeamPage from "./pages/TeamPage";
 import TeamInsightsPage from "./pages/TeamInsightsPage";
+import LearningInsightsPage from "./pages/LearningInsightsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,10 @@ const App = () => (
                 <Route
                   path="/app/team/insights"
                   element={<ProtectedRoute><TeamInsightsPage /></ProtectedRoute>}
+                />
+                <Route
+                  path="/app/learning"
+                  element={<ProtectedRoute><LearningInsightsPage /></ProtectedRoute>}
                 />
                 <Route
                   path="/settings"
