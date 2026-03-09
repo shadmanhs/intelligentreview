@@ -66,14 +66,13 @@ export default function Landing() {
             Used by engineering teams at 40+ companies
           </div>
           <h1 className="text-3xl sm:text-5xl font-medium tracking-tight text-foreground leading-[1.1] mb-5">
-            Your 10-person team wastes<br />
-            <span className="text-muted-foreground">60 hours/month</span> reading diffs.<br />
-            We cut that to 15.
+            AI reviews every PR<br />
+            <span className="text-muted-foreground">before your team wakes up.</span>
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-8 max-w-xl">
-            ReviewLens uses AI to read every PR, surface what actually matters, and draft the comments.
-            Your engineers approve, edit, or dismiss — then post to GitHub in one click.
-            Team analytics prove the ROI.
+            Add a webhook. Every PR gets an AI review comment on GitHub automatically —
+            security issues, missing error handling, and your team's custom rules enforced.
+            Engineers triage in 2 minutes instead of 30.
           </p>
           <div className="flex items-center gap-3 flex-wrap mb-4">
             <button

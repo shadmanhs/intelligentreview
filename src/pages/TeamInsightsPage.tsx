@@ -73,6 +73,31 @@ export default function TeamInsightsPage() {
     return { totalReviews, commentsPosted, approvalRate, timeSavedMin, highRisk, roi, monthlyValue, monthlyCost };
   }, [filteredSessions, filteredOutcomes, members]);
 
+  // Weekly digest — last 4 weeks
+  const weeklyDigest = useMemo(() => {
+    const weeks: { label: string; reviews: number; timeSaved: number; highRisk: number }[] = [];
+    for (let i = 0; i < 4; i++) {
+      const weekEnd = new Date(Date.now() - i * 7 * 86400000);
+      const weekStart = new Date(weekEnd.getTime() - 7 * 86400000);
+      const weekSessions = sessions.filter((s: any) => {
+        const d = new Date(s.created_at);
+        return d >= weekStart && d < weekEnd;
+      });
+      const weekOutcomes = outcomes.filter((o: any) => {
+        const d = new Date(o.created_at);
+        return d >= weekStart && d < weekEnd;
+      });
+      const approved = weekOutcomes.filter((o: any) => o.action === "approved").length;
+      weeks.push({
+        label: `${weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${weekEnd.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
+        reviews: weekSessions.length,
+        timeSaved: approved * 5,
+        highRisk: weekSessions.filter((s: any) => s.risk_level === "high").length,
+      });
+    }
+    return weeks;
+  }, [sessions, outcomes]);
+
   // Per-member breakdown
   const memberStats: MemberStats[] = useMemo(() => {
     return members.map((m) => {
