@@ -243,7 +243,7 @@ export default function TeamPage() {
         )}
 
         {/* Stats bar */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-4 gap-3 mb-6">
           <div className="border rounded-lg p-4 text-center">
             <p className="text-xl font-medium text-foreground">{members.length}</p>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Members</p>
@@ -252,6 +252,10 @@ export default function TeamPage() {
             <p className="text-xl font-medium text-foreground">{invites.length}</p>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Pending</p>
           </div>
+          <button onClick={() => navigate("/app/roles")} className="border rounded-lg p-4 text-center hover:bg-secondary/30 transition-colors">
+            <Shield className="h-5 w-5 text-muted-foreground mx-auto mb-1" strokeWidth={1.5} />
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Roles</p>
+          </button>
           <button onClick={() => navigate("/app/team/insights")} className="border rounded-lg p-4 text-center hover:bg-secondary/30 transition-colors">
             <BarChart3 className="h-5 w-5 text-muted-foreground mx-auto mb-1" strokeWidth={1.5} />
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Analytics</p>

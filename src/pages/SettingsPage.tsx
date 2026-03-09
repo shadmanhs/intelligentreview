@@ -392,6 +392,28 @@ export default function SettingsPage() {
           </section>
         )}
 
+        {/* ── Self-Hosted ── */}
+        <section className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <Shield className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+            <h2 className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Deployment</h2>
+          </div>
+          <div className="border rounded-lg">
+            <button
+              onClick={() => navigate("/app/self-hosted")}
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-secondary/30 transition-colors text-left"
+            >
+              <div>
+                <p className="text-sm font-medium text-foreground">Self-hosted deployment</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Run ReviewLens on your own infrastructure for maximum data privacy
+                </p>
+              </div>
+              <ArrowLeft className="h-3.5 w-3.5 text-muted-foreground rotate-180" strokeWidth={1.5} />
+            </button>
+          </div>
+        </section>
+
         {/* ── Danger zone ── */}
         <section className="mb-10">
           <h2 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-4">Session</h2>
