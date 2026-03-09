@@ -458,6 +458,7 @@ export default function SettingsPage() {
         </section>
 
         {/* ── Danger zone ── */}
+        <section className="mb-10">
           <h2 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-4">Session</h2>
           <div className="border rounded-lg">
             <div className="px-4 py-3">
