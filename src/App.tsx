@@ -19,6 +19,7 @@ import SecurityPage from "./pages/SecurityPage";
 import RulesPage from "./pages/RulesPage";
 import TeamPage from "./pages/TeamPage";
 import TeamInsightsPage from "./pages/TeamInsightsPage";
+import LearningInsightsPage from "./pages/LearningInsightsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
