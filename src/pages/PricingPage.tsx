@@ -85,7 +85,7 @@ export default function PricingPage() {
             </div>
             <div className="space-y-3 mb-6">
               {[
-                "1 AI review per week",
+                "3 AI reviews per week",
                 "Concern detection",
                 "Full diff viewer",
                 "Post to GitHub",
@@ -183,6 +183,33 @@ export default function PricingPage() {
             >
               Start 14-day free trial <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
             </button>
+          </div>
+        </div>
+
+        {/* ROI Dashboard pitch */}
+        <div className="mt-12 max-w-2xl mx-auto">
+          <div className="border-2 border-foreground/10 rounded-lg p-6 bg-card/50">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="h-4 w-4 text-foreground" strokeWidth={1.5} />
+              <p className="text-xs font-medium text-foreground uppercase tracking-wider">Included: ROI Dashboard</p>
+            </div>
+            <p className="text-sm text-foreground mb-2">Prove the value to your CTO in one screenshot.</p>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+              Every Team plan includes a real-time analytics dashboard: hours saved per engineer, 
+              bugs caught before merge, cost-per-review, and dollar ROI. Built for the budget conversation.
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { value: "47h", label: "Time saved/mo" },
+                { value: "1,520%", label: "ROI" },
+                { value: "142", label: "Reviews/mo" },
+              ].map((m) => (
+                <div key={m.label} className="border rounded-md p-2.5 text-center">
+                  <p className="text-sm font-medium text-foreground">{m.value}</p>
+                  <p className="text-[9px] text-muted-foreground uppercase tracking-wider">{m.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

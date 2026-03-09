@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { OrganizationProvider } from "@/hooks/useOrganization";
@@ -32,6 +33,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <AuthProvider>
       <SubscriptionProvider>
         <OrganizationProvider>
@@ -103,6 +105,7 @@ const App = () => (
         </OrganizationProvider>
       </SubscriptionProvider>
     </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-const FREE_REVIEWS_PER_WEEK = 1;
+const FREE_REVIEWS_PER_WEEK = 3;
 
 interface SubscriptionContextType {
   subscribed: boolean;
