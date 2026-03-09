@@ -159,7 +159,7 @@ async function saveCommentEdits(
       session_id: sessionId,
       concern_severity: c.severity,
       concern_title: c.title,
-      original_comment: c.explanation,
+      original_comment: c.originalDraftComment!,
       edited_comment: c.draftComment,
       concern_file: c.file,
     }));
