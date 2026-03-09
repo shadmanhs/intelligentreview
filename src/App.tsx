@@ -23,6 +23,8 @@ import TeamInsightsPage from "./pages/TeamInsightsPage";
 import LearningInsightsPage from "./pages/LearningInsightsPage";
 import RolesPage from "./pages/RolesPage";
 import SelfHostedPage from "./pages/SelfHostedPage";
+import ContactPage from "./pages/ContactPage";
+import AuditLogPage from "./pages/AuditLogPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
