@@ -7,6 +7,7 @@ import { useKeyboardNav } from "@/hooks/useKeyboardNav";
 import { getGitHubToken, fetchPRs } from "@/lib/github";
 import { PRFilters, SortField } from "@/components/dashboard/PRFilters";
 import { PRCard } from "@/components/dashboard/PRCard";
+import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { Lock, Loader2, Sparkles, Zap, Keyboard, Users, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
