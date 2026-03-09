@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useOrganization } from "@/hooks/useOrganization";
@@ -22,6 +23,9 @@ import {
   Webhook,
   Copy,
   Check,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 
 interface Profile {
