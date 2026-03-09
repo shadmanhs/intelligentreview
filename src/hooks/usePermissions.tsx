@@ -163,6 +163,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     if (!org) return;
     const { error } = await supabase.from("custom_roles" as any).update(updates as any).eq("id", roleId);
     if (error) throw error;
+    await logAudit({ orgId: org.id, action: "role.updated", entityType: "role", entityId: roleId, details: updates });
     await loadData();
   }, [org, loadData]);
 
