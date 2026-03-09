@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, BarChart3, TrendingDown, TrendingUp, Shield, AlertTriangle,
-  Clock, FileCode, Loader2, Target, Zap
+  Clock, FileCode, Loader2, Target, Zap, Brain
 } from "lucide-react";
 
 interface ReviewSession {
