@@ -148,13 +148,14 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
 
   const createRole = useCallback(async (name: string, description: string, permissions: Record<string, boolean>) => {
     if (!org || !user) return;
-    const { error } = await supabase.from("custom_roles" as any).insert({
+    const { data, error } = await supabase.from("custom_roles" as any).insert({
       org_id: org.id,
       name,
       description,
       permissions,
-    } as any);
+    } as any).select().single();
     if (error) throw error;
+    await logAudit({ orgId: org.id, action: "role.created", entityType: "role", entityId: (data as any)?.id, details: { name } });
     await loadData();
   }, [org, user, loadData]);
 
