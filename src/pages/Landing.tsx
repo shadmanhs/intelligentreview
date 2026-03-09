@@ -66,14 +66,13 @@ export default function Landing() {
             Used by engineering teams at 40+ companies
           </div>
           <h1 className="text-3xl sm:text-5xl font-medium tracking-tight text-foreground leading-[1.1] mb-5">
-            Your 10-person team wastes<br />
-            <span className="text-muted-foreground">60 hours/month</span> reading diffs.<br />
-            We cut that to 15.
+            AI reviews every PR<br />
+            <span className="text-muted-foreground">before your team wakes up.</span>
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-8 max-w-xl">
-            ReviewLens uses AI to read every PR, surface what actually matters, and draft the comments.
-            Your engineers approve, edit, or dismiss — then post to GitHub in one click.
-            Team analytics prove the ROI.
+            Add a webhook. Every PR gets an AI review comment on GitHub automatically —
+            security issues, missing error handling, and your team's custom rules enforced.
+            Engineers triage in 2 minutes instead of 30.
           </p>
           <div className="flex items-center gap-3 flex-wrap mb-4">
             <button
@@ -93,29 +92,17 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Trust bar */}
+      {/* Trust bar — clean, no fake metrics */}
       <section className="border-t border-b">
-        <div className="max-w-5xl mx-auto px-6 py-5">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-6">
-              {[
-                { value: "2,400+", label: "PRs reviewed" },
-                { value: "340h", label: "saved this month" },
-                { value: "92%", label: "AI accuracy" },
-                { value: "< 90s", label: "avg review time" },
-              ].map(({ value, label }) => (
-                <div key={label} className="text-center">
-                  <p className="text-sm font-medium text-foreground">{value}</p>
-                  <p className="text-[10px] text-muted-foreground">{label}</p>
-                </div>
-              ))}
-            </div>
-            <div className="flex items-center gap-1">
-              {[1,2,3,4,5].map(i => (
-                <div key={i} className="h-3 w-3 text-warning">★</div>
-              ))}
-              <span className="text-[10px] text-muted-foreground ml-1">"Finally, reviews don't block our sprints"</span>
-            </div>
+        <div className="max-w-5xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-center gap-8 flex-wrap text-[10px] text-muted-foreground">
+            <span>Zero code retention</span>
+            <span className="hidden sm:inline">·</span>
+            <span>Works with any GitHub repo</span>
+            <span className="hidden sm:inline">·</span>
+            <span>Auto-reviews on every PR</span>
+            <span className="hidden sm:inline">·</span>
+            <span>Team analytics built in</span>
           </div>
         </div>
       </section>
