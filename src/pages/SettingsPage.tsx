@@ -424,8 +424,40 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* ── Danger zone ── */}
+        {/* ── Appearance ── */}
         <section className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <Sun className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+            <h2 className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Appearance</h2>
+          </div>
+          <div className="border rounded-lg">
+            <div className="px-4 py-3">
+              <p className="text-xs text-muted-foreground mb-3">Theme</p>
+              <div className="flex gap-2">
+                {[
+                  { value: "light", icon: Sun, label: "Light" },
+                  { value: "dark", icon: Moon, label: "Dark" },
+                  { value: "system", icon: Monitor, label: "System" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setTheme(opt.value)}
+                    className={`flex items-center gap-1.5 text-[11px] px-3 py-2 rounded-md border transition-colors ${
+                      theme === opt.value
+                        ? "bg-foreground text-background border-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:border-foreground/30"
+                    }`}
+                  >
+                    <opt.icon className="h-3 w-3" strokeWidth={1.5} />
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Danger zone ── */}
           <h2 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-4">Session</h2>
           <div className="border rounded-lg">
             <div className="px-4 py-3">
