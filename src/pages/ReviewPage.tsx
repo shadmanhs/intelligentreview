@@ -91,8 +91,17 @@ export default function ReviewPage() {
     }
   };
 
-  const approve = (cid: string) => setConcerns((prev) => prev.map((c) => c.id === cid ? { ...c, status: "approved" as const } : c));
-  const dismiss = (cid: string) => setConcerns((prev) => prev.map((c) => c.id === cid ? { ...c, status: "dismissed" as const } : c));
+  const canApprove = hasPermission("review.approve");
+  const canPost = hasPermission("review.post_comments");
+
+  const approve = (cid: string) => {
+    if (!canApprove) { toast.error("You don't have permission to approve concerns"); return; }
+    setConcerns((prev) => prev.map((c) => c.id === cid ? { ...c, status: "approved" as const } : c));
+  };
+  const dismiss = (cid: string) => {
+    if (!canApprove) { toast.error("You don't have permission to dismiss concerns"); return; }
+    setConcerns((prev) => prev.map((c) => c.id === cid ? { ...c, status: "dismissed" as const } : c));
+  };
   const edit = (cid: string, text: string) => setConcerns((prev) => prev.map((c) => c.id === cid ? { ...c, draftComment: text, status: "edited" as const } : c));
 
   const handleInlineComment = useCallback((comment: InlineComment) => {
