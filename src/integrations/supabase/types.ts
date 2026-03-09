@@ -58,6 +58,44 @@ export type Database = {
           },
         ]
       }
+      authorized_repos: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          org_id: string | null
+          repo_full_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          org_id?: string | null
+          repo_full_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          org_id?: string | null
+          repo_full_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "authorized_repos_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comment_edits: {
         Row: {
           concern_file: string | null

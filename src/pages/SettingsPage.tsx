@@ -6,6 +6,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useOrganization } from "@/hooks/useOrganization";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { RepoAuthorization } from "@/components/settings/RepoAuthorization";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -290,6 +291,9 @@ export default function SettingsPage() {
             <ExternalLink className="h-2.5 w-2.5" strokeWidth={1.5} /> Manage tokens on GitHub
           </a>
         </section>
+
+        {/* ── Repo Authorization ── */}
+        <RepoAuthorization />
 
         {/* ── Subscription ── */}
         <section className="mb-10">
