@@ -151,7 +151,7 @@ async function saveCommentEdits(
   concerns: AIConcern[]
 ) {
   const edits = concerns
-    .filter((c) => c.status === "edited" && c.draftComment !== c.explanation)
+    .filter((c) => c.status === "edited" && c.originalDraftComment && c.draftComment !== c.originalDraftComment)
     .map((c) => ({
       user_id: userId,
       org_id: orgId,
