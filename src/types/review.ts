@@ -31,6 +31,7 @@ export interface AIConcern {
   lineEnd: number;
   codeSnippet: string;
   draftComment: string;
+  originalDraftComment?: string;
   status: "pending" | "approved" | "edited" | "dismissed";
 }
 

@@ -74,7 +74,7 @@ export default function ReviewPage() {
       }
 
       const data = await analyzePR(token, owner!, repo!, Number(number));
-      setConcerns(data.concerns || []);
+      setConcerns((data.concerns || []).map((c: AIConcern) => ({ ...c, originalDraftComment: c.draftComment })));
       setSummary(data.summary || "");
       setRiskLevel(data.riskLevel || "medium");
       setFiles(data.files || []);

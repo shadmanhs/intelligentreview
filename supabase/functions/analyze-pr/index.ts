@@ -6,6 +6,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function getServiceClient() {
+  return createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } }
+  );
+}
+
 async function fetchRepoContext(owner: string, repo: string, ghHeaders: Record<string, string>, files: any[]) {
   const [repoRes, treeRes] = await Promise.all([
     fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers: ghHeaders }),
@@ -22,7 +30,6 @@ async function fetchRepoContext(owner: string, repo: string, ghHeaders: Record<s
     const treeData = await treeRes.json();
     const tree = treeData.tree || [];
 
-    // Config files for coding standards
     const patternFiles = tree
       .filter((f: any) => f.type === "blob")
       .map((f: any) => f.path)
@@ -50,7 +57,6 @@ async function fetchRepoContext(owner: string, repo: string, ghHeaders: Record<s
       if (valid.length > 0) repoContext += `\n\nRepo coding standards:\n${valid.join("\n\n")}`;
     }
 
-    // Sample similar files
     const changedExtensions = new Set(files.map((f: any) => {
       const ext = f.filename?.split(".").pop();
       return ext ? `.${ext}` : "";
@@ -83,57 +89,138 @@ async function fetchRepoContext(owner: string, repo: string, ghHeaders: Record<s
   return repoContext;
 }
 
-async function fetchCustomRules(userId: string | null, repo: string): Promise<string[]> {
+async function fetchCustomRules(userId: string | null, orgId: string | null, repo: string): Promise<string[]> {
   if (!userId) return [];
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
-    const { data } = await supabase
+    const supabase = getServiceClient();
+    
+    // Fetch both prompt rules and structured rules
+    let query = supabase
       .from("custom_rules")
-      .select("rule_text")
-      .eq("user_id", userId)
+      .select("rule_text, rule_type, conditions, severity")
       .eq("enabled", true)
       .or(`repo.eq.${repo},repo.eq.*`);
-    return (data || []).map((r: any) => r.rule_text);
+    
+    if (orgId) {
+      query = query.or(`user_id.eq.${userId},org_id.eq.${orgId}`);
+    } else {
+      query = query.eq("user_id", userId);
+    }
+    
+    const { data } = await query;
+    if (!data) return [];
+
+    return data.map((r: any) => {
+      if (r.rule_type === "structured" && r.conditions) {
+        // Convert structured rules to natural language for the AI
+        return formatStructuredRule(r.conditions, r.severity);
+      }
+      return r.rule_text;
+    });
   } catch {
     return [];
   }
 }
 
-async function fetchDismissPatterns(userId: string | null, repo: string): Promise<string[]> {
-  if (!userId) return [];
+function formatStructuredRule(conditions: any[], severity: string): string {
+  const parts = conditions.map((c: any) => {
+    switch (c.type) {
+      case "max_function_length":
+        return `Flag any function longer than ${c.value} lines as ${severity}`;
+      case "require_pattern":
+        return `Flag files that don't contain "${c.value}" when they match pattern "${c.filePattern}" as ${severity}`;
+      case "forbid_pattern":
+        return `Flag any usage of "${c.value}" as ${severity}. ${c.reason || ""}`;
+      case "require_error_handling":
+        return `Flag ${c.value} functions/calls without error handling as ${severity}`;
+      case "max_file_length":
+        return `Flag any file longer than ${c.value} lines as ${severity}`;
+      case "naming_convention":
+        return `Enforce ${c.value} naming convention for ${c.target} as ${severity}`;
+      default:
+        return `Check: ${JSON.stringify(c)}`;
+    }
+  });
+  return parts.join(". ");
+}
+
+/** Learning Loop: fetch patterns the team frequently dismisses or approves */
+async function fetchTeamPatterns(userId: string | null, orgId: string | null, repo: string) {
+  if (!userId) return { dismissed: [] as string[], highValue: [] as string[], editExamples: [] as string[] };
+  
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
-    // Get most dismissed concern titles for this repo
-    const { data } = await supabase
-      .from("review_outcomes")
-      .select("concern_title")
-      .eq("user_id", userId)
-      .eq("action", "dismissed")
+    const supabase = getServiceClient();
+    
+    // Fetch concern patterns for this user/org
+    let query = supabase
+      .from("concern_patterns")
+      .select("concern_title, concern_severity, times_approved, times_dismissed, times_edited")
+      .or(`repo.eq.${repo},repo.eq.*`)
+      .order("last_seen_at", { ascending: false })
+      .limit(100);
+
+    if (orgId) {
+      query = query.or(`user_id.eq.${userId},org_id.eq.${orgId}`);
+    } else {
+      query = query.eq("user_id", userId);
+    }
+    
+    const { data: patterns } = await query;
+    
+    const dismissed: string[] = [];
+    const highValue: string[] = [];
+    
+    (patterns || []).forEach((p: any) => {
+      const total = p.times_approved + p.times_dismissed + p.times_edited;
+      if (total < 2) return;
+      
+      const dismissRate = p.times_dismissed / total;
+      const approveRate = (p.times_approved + p.times_edited) / total;
+      
+      if (dismissRate >= 0.7) {
+        dismissed.push(`"${p.concern_title}" (${p.concern_severity}) — dismissed ${Math.round(dismissRate * 100)}% of the time`);
+      } else if (approveRate >= 0.8) {
+        highValue.push(`"${p.concern_title}" (${p.concern_severity}) — approved ${Math.round(approveRate * 100)}% of the time`);
+      }
+    });
+
+    // Fetch recent comment edits for knowledge capture
+    let editQuery = supabase
+      .from("comment_edits")
+      .select("concern_title, original_comment, edited_comment, concern_severity")
       .or(`repo.eq.${repo},repo.eq.*`)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(20);
+    
+    if (orgId) {
+      editQuery = editQuery.or(`user_id.eq.${userId},org_id.eq.${orgId}`);
+    } else {
+      editQuery = editQuery.eq("user_id", userId);
+    }
+    
+    const { data: edits } = await editQuery;
+    
+    const editExamples = (edits || []).map((e: any) =>
+      `For "${e.concern_title}" (${e.concern_severity}): AI wrote "${e.original_comment}" → Dev changed to "${e.edited_comment}"`
+    ).slice(0, 10);
 
-    if (!data || data.length === 0) return [];
-
-    // Count occurrences
-    const counts: Record<string, number> = {};
-    data.forEach((d: any) => { counts[d.concern_title] = (counts[d.concern_title] || 0) + 1; });
-
-    // Return titles dismissed 3+ times
-    return Object.entries(counts)
-      .filter(([, count]) => count >= 3)
-      .map(([title]) => title);
+    return { dismissed, highValue, editExamples };
   } catch {
-    return [];
+    return { dismissed: [], highValue: [], editExamples: [] };
   }
+}
+
+async function getUserOrgId(userId: string): Promise<string | null> {
+  try {
+    const supabase = getServiceClient();
+    const { data } = await supabase
+      .from("org_members")
+      .select("org_id")
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle();
+    return data?.org_id || null;
+  } catch { return null; }
 }
 
 serve(async (req) => {
@@ -162,6 +249,9 @@ serve(async (req) => {
       } catch { /* ignore */ }
     }
 
+    // Get user's org
+    const orgId = userId ? await getUserOrgId(userId) : null;
+
     const ghHeaders = { Authorization: `Bearer ${github_token}`, Accept: "application/vnd.github+json" };
 
     // Fetch PR info and files in parallel
@@ -179,11 +269,12 @@ serve(async (req) => {
       prTitle = prData.title || "";
     }
 
-    // Fetch repo context, custom rules, and dismiss patterns in parallel
-    const [repoContext, customRules, dismissPatterns] = await Promise.all([
+    // Fetch repo context, custom rules, AND team patterns in parallel
+    const fullRepo = `${owner}/${repo}`;
+    const [repoContext, customRules, teamPatterns] = await Promise.all([
       fetchRepoContext(owner, repo, ghHeaders, files),
-      fetchCustomRules(userId, `${owner}/${repo}`),
-      fetchDismissPatterns(userId, `${owner}/${repo}`),
+      fetchCustomRules(userId, orgId, fullRepo),
+      fetchTeamPatterns(userId, orgId, fullRepo),
     ]);
 
     // Build custom rules section for prompt
@@ -192,10 +283,19 @@ serve(async (req) => {
       customRulesSection = `\n\nCUSTOM RULES (MUST enforce these - the reviewer has explicitly requested them):\n${customRules.map((r, i) => `${i + 1}. ${r}`).join("\n")}`;
     }
 
-    // Build dismiss patterns section
-    let dismissSection = "";
-    if (dismissPatterns.length > 0) {
-      dismissSection = `\n\nFREQUENTLY DISMISSED (de-prioritize these unless critical):\n${dismissPatterns.map((t) => `- "${t}"`).join("\n")}`;
+    // Build learning loop sections
+    let learningSection = "";
+    if (teamPatterns.dismissed.length > 0) {
+      learningSection += `\n\nFREQUENTLY DISMISSED (de-prioritize or skip these unless truly critical — the team consistently finds them unhelpful):\n${teamPatterns.dismissed.map((t) => `- ${t}`).join("\n")}`;
+    }
+    if (teamPatterns.highValue.length > 0) {
+      learningSection += `\n\nHIGH-VALUE PATTERNS (prioritize these — the team consistently acts on them):\n${teamPatterns.highValue.map((t) => `- ${t}`).join("\n")}`;
+    }
+    
+    // Build knowledge capture section
+    let knowledgeSection = "";
+    if (teamPatterns.editExamples.length > 0) {
+      knowledgeSection += `\n\nTEAM WRITING STYLE (learn from how senior devs edited AI comments — match their tone and specificity):\n${teamPatterns.editExamples.map((e) => `- ${e}`).join("\n")}`;
     }
 
     const diffSummary = files.map((f: any) => ({
@@ -215,9 +315,10 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a senior staff engineer reviewing a pull request. You have access to the repo's coding standards and existing code patterns.
+            content: `You are a senior staff engineer reviewing a pull request. You have access to the repo's coding standards, the team's historical preferences, and examples of how they prefer comments to be written.
 ${customRulesSection}
-${dismissSection}
+${learningSection}
+${knowledgeSection}
 
 IMPORTANT: Compare the PR changes against the repo's established patterns. Flag deviations from:
 - Naming conventions used in existing files
@@ -233,7 +334,7 @@ For each concern, provide:
 - file: The filename
 - lineStart: Approximate line number
 - codeSnippet: The relevant code (max 5 lines)
-- draftComment: A review comment the reviewer could post (1-2 sentences, professional tone)
+- draftComment: A review comment the reviewer could post (1-2 sentences, professional tone). If team writing style examples are provided, match that tone and level of detail.
 
 Focus on:
 1. Security issues (auth, injection, token handling, input validation)
@@ -244,7 +345,8 @@ Focus on:
 6. Missing edge cases
 7. Inconsistent naming or patterns compared to existing code
 
-Be specific and actionable. Reference the repo's existing patterns when flagging inconsistencies.`,
+Be specific and actionable. Reference the repo's existing patterns when flagging inconsistencies.
+Skip concerns the team has historically dismissed unless they are genuinely critical.`,
           },
           {
             role: "user",

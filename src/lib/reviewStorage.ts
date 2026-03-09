@@ -11,6 +11,12 @@ async function getUserOrgId(userId: string): Promise<string | null> {
   return data?.org_id || null;
 }
 
+/** Generate a simple hash for pattern matching */
+function patternHash(title: string, severity: string): string {
+  const normalized = title.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 60);
+  return `${severity}:${normalized}`;
+}
+
 export async function saveReviewSession(params: {
   repo: string;
   prNumber: number;
@@ -77,14 +83,97 @@ export async function saveReviewSession(params: {
     }
   }
 
+  // --- LEARNING LOOP: Update concern patterns ---
+  await updateConcernPatterns(user.id, orgId, params.repo, params.concerns);
+
+  // --- KNOWLEDGE CAPTURE: Save comment edits ---
+  await saveCommentEdits(user.id, orgId, params.repo, session.id, params.concerns);
+
   return session.id;
+}
+
+/** Learning Loop: track approval/dismiss/edit rates per concern pattern */
+async function updateConcernPatterns(
+  userId: string,
+  orgId: string | null,
+  repo: string,
+  concerns: AIConcern[]
+) {
+  for (const concern of concerns) {
+    if (concern.status === "pending") continue;
+
+    const hash = patternHash(concern.title, concern.severity);
+
+    // Try upsert — increment the relevant counter
+    const incrementField =
+      concern.status === "approved" ? "times_approved" :
+      concern.status === "dismissed" ? "times_dismissed" :
+      "times_edited";
+
+    // Check if pattern exists
+    const { data: existing } = await supabase
+      .from("concern_patterns")
+      .select("id, times_approved, times_dismissed, times_edited")
+      .eq("user_id", userId)
+      .eq("pattern_hash", hash)
+      .maybeSingle();
+
+    if (existing) {
+      const update: Record<string, any> = { last_seen_at: new Date().toISOString() };
+      update[incrementField] = (existing as any)[incrementField] + 1;
+      await supabase
+        .from("concern_patterns")
+        .update(update as any)
+        .eq("id", existing.id);
+    } else {
+      const insert: Record<string, any> = {
+        user_id: userId,
+        org_id: orgId,
+        repo,
+        pattern_hash: hash,
+        concern_title: concern.title,
+        concern_severity: concern.severity,
+        times_approved: concern.status === "approved" ? 1 : 0,
+        times_dismissed: concern.status === "dismissed" ? 1 : 0,
+        times_edited: concern.status === "edited" ? 1 : 0,
+      };
+      await supabase.from("concern_patterns").insert(insert as any);
+    }
+  }
+}
+
+/** Knowledge Capture: save before/after when a dev edits an AI comment */
+async function saveCommentEdits(
+  userId: string,
+  orgId: string | null,
+  repo: string,
+  sessionId: string,
+  concerns: AIConcern[]
+) {
+  const edits = concerns
+    .filter((c) => c.status === "edited" && c.originalDraftComment && c.draftComment !== c.originalDraftComment)
+    .map((c) => ({
+      user_id: userId,
+      org_id: orgId,
+      repo,
+      session_id: sessionId,
+      concern_severity: c.severity,
+      concern_title: c.title,
+      original_comment: c.originalDraftComment!,
+      edited_comment: c.draftComment,
+      concern_file: c.file,
+    }));
+
+  if (edits.length > 0) {
+    const { error } = await supabase.from("comment_edits").insert(edits as any);
+    if (error) console.error("Failed to save comment edits:", error);
+  }
 }
 
 export async function fetchCustomRules(repo: string): Promise<string[]> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
-  // Get personal rules + org rules
   const { data } = await supabase
     .from("custom_rules")
     .select("rule_text")
