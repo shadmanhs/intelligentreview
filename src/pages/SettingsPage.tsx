@@ -292,6 +292,9 @@ export default function SettingsPage() {
           </a>
         </section>
 
+        {/* ── Repo Authorization ── */}
+        <RepoAuthorization />
+
         {/* ── Subscription ── */}
         <section className="mb-10">
           <div className="flex items-center gap-2 mb-4">
