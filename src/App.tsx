@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { OrganizationProvider } from "@/hooks/useOrganization";
+import { PermissionsProvider } from "@/hooks/usePermissions";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import LoginPage from "./pages/LoginPage";
@@ -20,6 +21,8 @@ import RulesPage from "./pages/RulesPage";
 import TeamPage from "./pages/TeamPage";
 import TeamInsightsPage from "./pages/TeamInsightsPage";
 import LearningInsightsPage from "./pages/LearningInsightsPage";
+import RolesPage from "./pages/RolesPage";
+import SelfHostedPage from "./pages/SelfHostedPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
