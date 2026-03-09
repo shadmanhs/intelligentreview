@@ -40,6 +40,7 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { subscribed, subscriptionEnd, checkSubscription } = useSubscription();
+  const { org } = useOrganization();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [ghConnection, setGhConnection] = useState<GitHubConnection | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,6 +49,7 @@ export default function SettingsPage() {
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [disconnectingGh, setDisconnectingGh] = useState(false);
+  const [webhookCopied, setWebhookCopied] = useState(false);
 
   useEffect(() => {
     if (user) loadData();
