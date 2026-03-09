@@ -331,6 +331,67 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* ── Auto-Review Webhook ── */}
+        {subscribed && (
+          <section className="mb-10">
+            <div className="flex items-center gap-2 mb-4">
+              <Webhook className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+              <h2 className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Auto-Review (Webhook)</h2>
+            </div>
+
+            <div className="border rounded-lg divide-y">
+              <div className="px-4 py-3">
+                <p className="text-sm font-medium text-foreground mb-1">Automatic PR reviews</p>
+                <p className="text-[10px] text-muted-foreground mb-3 leading-relaxed">
+                  Add this webhook URL to your GitHub repo. Every PR opened gets an automatic AI review comment — zero manual action.
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="text-[10px] font-mono bg-secondary px-3 py-2 rounded flex-1 truncate text-foreground">
+                    {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/github-webhook`}
+                  </code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/github-webhook`);
+                      setWebhookCopied(true);
+                      setTimeout(() => setWebhookCopied(false), 2000);
+                      toast.success("Webhook URL copied");
+                    }}
+                    className="shrink-0 text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded hover:bg-secondary"
+                  >
+                    {webhookCopied ? <Check className="h-3.5 w-3.5 text-success" strokeWidth={2} /> : <Copy className="h-3.5 w-3.5" strokeWidth={1.5} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="px-4 py-3">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Setup in 3 steps</p>
+                <ol className="space-y-1.5 text-xs text-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="text-[9px] h-4 w-4 rounded-full border flex items-center justify-center text-muted-foreground font-mono shrink-0 mt-0.5">1</span>
+                    Go to your repo → Settings → Webhooks → Add webhook
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[9px] h-4 w-4 rounded-full border flex items-center justify-center text-muted-foreground font-mono shrink-0 mt-0.5">2</span>
+                    Paste the URL above, set content type to <code className="text-[10px] font-mono bg-secondary px-1 rounded">application/json</code>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[9px] h-4 w-4 rounded-full border flex items-center justify-center text-muted-foreground font-mono shrink-0 mt-0.5">3</span>
+                    Select "Pull requests" as the trigger event
+                  </li>
+                </ol>
+              </div>
+
+              {org && (
+                <div className="px-4 py-3 bg-card">
+                  <p className="text-[10px] text-muted-foreground">
+                    <span className="text-success">✓</span> Team rules from <span className="font-medium text-foreground">{org.name}</span> auto-enforced on all webhook reviews.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         {/* ── Danger zone ── */}
         <section className="mb-10">
           <h2 className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-4">Session</h2>
