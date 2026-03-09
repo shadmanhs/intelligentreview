@@ -184,6 +184,7 @@ export default function InsightsPage() {
             >
               <Brain className="h-3 w-3" strokeWidth={1.5} /> Learning Intelligence
             </button>
+          </div>
           <div className="flex items-center gap-1 border rounded-md overflow-hidden">
             {(["7d", "30d", "all"] as const).map((range) => (
               <button
