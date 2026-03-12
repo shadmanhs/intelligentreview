@@ -251,7 +251,7 @@ export default function Landing() {
                   <div className="h-2 w-2 rounded-full bg-warning/40" />
                   <div className="h-2 w-2 rounded-full bg-success/40" />
                 </div>
-                <span className="text-[10px] text-muted-foreground font-mono ml-2">reviewlens.dev/app/team/insights</span>
+                <span className="text-[10px] text-muted-foreground font-mono ml-2">reviewlens.xyz/app/team/insights</span>
               </div>
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-4">
