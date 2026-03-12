@@ -248,7 +248,7 @@ export default function PricingPage() {
           <h3 className="text-sm font-medium text-foreground mb-2">Need SSO, audit logs, or custom deployment?</h3>
           <p className="text-xs text-muted-foreground mb-4">We work with engineering teams at scale. Let's talk.</p>
           <a
-            href="mailto:team@reviewlens.dev"
+            href="mailto:team@reviewlens.xyz"
             className="text-xs px-4 py-2 rounded-md border text-foreground hover:bg-secondary transition-colors inline-block"
           >
             Contact sales
