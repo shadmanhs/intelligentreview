@@ -560,7 +560,7 @@ export default function Landing() {
           <div className="mt-8 text-center border rounded-lg p-6 max-w-md mx-auto">
             <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Enterprise</p>
             <p className="text-sm text-foreground mb-2">Need SSO, audit logs, SLAs, or on-prem?</p>
-            <a href="mailto:team@reviewlens.dev" className="text-xs text-foreground underline hover:no-underline">
+            <a href="mailto:team@reviewlens.xyz" className="text-xs text-foreground underline hover:no-underline">
               Talk to us →
             </a>
           </div>

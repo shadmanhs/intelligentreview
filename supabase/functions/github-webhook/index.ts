@@ -195,7 +195,7 @@ Skip style nitpicks. Only flag things that matter.`,
         .map((c: any) => `${severityEmoji[c.severity] || "⚪"} **${c.severity.toUpperCase()}** — ${c.title}\n   📍 \`${c.file}:${c.line}\`\n   ${c.comment}`)
         .join("\n\n");
 
-      const body = `## 🔍 ReviewLens Auto-Review\n\n${analysis.summary}\n\n**Risk Level:** ${analysis.riskLevel.toUpperCase()}\n\n---\n\n${concernsList}\n\n---\n_${analysis.concerns.length} concern${analysis.concerns.length !== 1 ? "s" : ""} found · [ReviewLens](https://reviewlens.dev)_`;
+      const body = `## 🔍 ReviewLens Auto-Review\n\n${analysis.summary}\n\n**Risk Level:** ${analysis.riskLevel.toUpperCase()}\n\n---\n\n${concernsList}\n\n---\n_${analysis.concerns.length} concern${analysis.concerns.length !== 1 ? "s" : ""} found · [ReviewLens](https://reviewlens.xyz)_`;
 
       await fetch(`https://api.github.com/repos/${fullRepo}/issues/${prNumber}/comments`, {
         method: "POST",
